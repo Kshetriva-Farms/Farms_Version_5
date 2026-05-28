@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kshetriva-farms-cache-v1';
+const CACHE_NAME = 'kshetriva-farms-cache-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -27,7 +27,9 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('🌾 Service Worker: Pre-caching static assets successfully.');
-        return cache.addAll(ASSETS_TO_CACHE);
+        // Force network fetch to bypass browser HTTP cache and get clean files
+        const cacheRequests = ASSETS_TO_CACHE.map(url => new Request(url, { cache: 'reload' }));
+        return cache.addAll(cacheRequests);
       })
       .then(() => self.skipWaiting())
   );
@@ -41,7 +43,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request)
+    caches.match(event.request, { ignoreSearch: true })
       .then((response) => {
         // Cache hit - return cached response
         if (response) {
