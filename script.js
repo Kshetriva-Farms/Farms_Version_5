@@ -1404,7 +1404,6 @@ function updateCartUI() {
 
     // Phase 1: Minimum order check - 2 items minimum
     let checkoutBlocked = false;
-    const totalItems = Object.values(cart).reduce((sum, item) => sum + (item.qty || 0), 0);
     if (totalItems < 2) {
         if (minOrderNotice) {
             const itemsNeeded = 2 - totalItems;
