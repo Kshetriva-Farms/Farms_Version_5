@@ -1,33 +1,35 @@
-const CACHE_NAME = 'kshetriva-farms-cache-v3';
+const CACHE_NAME = 'kshetriva-farms-cache-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './blog.html',
   './styles.css',
   './script.js',
+  './blog.js',
   './robots.txt',
   './sitemap.xml',
   './manifest.json',
   './images/favicon.png',
   './images/logo_pwa_192.png',
   './images/logo_pwa_512.png',
-  './images/logo_nav.webp',
-  './images/about_farm_wide.png',
-  './images/farmer_surendhar.webp',
-  './images/farmer_bhaskar.png',
-  './images/farmer_ashok.webp',
-  './images/farm_field.webp',
-  './images/harvesting.webp',
-  './images/quality_check.webp',
-  './images/delivery_box.webp'
+  './images/logo_nav_new.png',
+  './images/blog_brand_hero.jpg',
+  './images/blog_delivery_box.png',
+  './images/blog_quality_control.png',
+  './images/blog_fresh_dew.png',
+  './images/blog_farmer_pick.png',
+  './images/blog_cooking_fresh.png',
+  './images/blog_market_cart.jpg',
+  './images/blog_hand_tomatoes.jpg',
+  './images/blog_packing_crates.jpg'
 ];
 
-// Perform install steps
+// Perform install steps and cache initial assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('🌾 Service Worker: Pre-caching static assets successfully.');
-        // Force network fetch to bypass browser HTTP cache and get clean files
         const cacheRequests = ASSETS_TO_CACHE.map(url => new Request(url, { cache: 'reload' }));
         return cache.addAll(cacheRequests);
       })
@@ -35,48 +37,69 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Cache and return requests
+// Fetch events with Network-First for HTML/CSS/JS and Cache-First for Heavy Media
 self.addEventListener('fetch', (event) => {
-  // Only handle http/https requests, ignore chrome-extension / database origins
+  // Only handle requests originating from our server
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request, { ignoreSearch: true })
-      .then((response) => {
-        // Cache hit - return cached response
-        if (response) {
-          return response;
-        }
+  const url = new URL(event.request.url);
+  const isStaticCodeAsset = url.pathname.endsWith('.css') || 
+                            url.pathname.endsWith('.js') || 
+                            url.pathname.endsWith('.json') || 
+                            url.pathname.endsWith('.xml') || 
+                            event.request.mode === 'navigate';
 
-        // Cache miss - fetch from network
-        return fetch(event.request).then((networkResponse) => {
-          // Check if we received a valid response
-          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-            return networkResponse;
-          }
-
-          // Dynamically cache new static assets (skip dynamic firestore/admin requests)
-          if (event.request.method === 'GET' && !event.request.url.includes('#admin')) {
+  if (isStaticCodeAsset) {
+    // Network-First Strategy: Fetch from internet first, save clean cache, fallback to cache on network fail
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
             });
           }
-
           return networkResponse;
-        });
-      }).catch(() => {
-        // Fallback for document pages if completely offline
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
-      })
-  );
+        })
+        .catch(() => {
+          // Offline fallback
+          return caches.match(event.request, { ignoreSearch: true })
+            .then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              if (event.request.mode === 'navigate') {
+                return caches.match('./index.html');
+              }
+            });
+        })
+    );
+  } else {
+    // Cache-First Strategy for heavy media assets (images, videos, etc.)
+    event.respondWith(
+      caches.match(event.request, { ignoreSearch: true })
+        .then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          return fetch(event.request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+            }
+            return networkResponse;
+          });
+        })
+    );
+  }
 });
 
-// Clean up old caches on activation
+// Clean up old deprecated caches on activation
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(

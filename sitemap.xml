@@ -13,4 +13,8 @@
   <url>
     <loc>https://www.kshetrivafarms.com/gallery.html</loc>
   </url>
+  <url>
+    <loc>https://www.kshetrivafarms.com/blog.html</loc>
+    <priority>0.8</priority>
+  </url>
 </urlset>
