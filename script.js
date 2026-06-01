@@ -62,11 +62,11 @@ const BASKET_TIERS = [
 
 // ===== Phase 1: Ordering Window Schedule =====
 const ORDERING_SCHEDULE = {
-    openDay: 5,      // Friday (0=Sunday)
-    openHour: 9,     // 9:00 AM (changed from 14)
-    closeDay: 6,     // Saturday
-    closeHour: 18,   // 6:00 PM (changed from 20)
-    deliveryDay: 0   // Sunday
+    openDay: 4,      // Thursday (0=Sunday)
+    openHour: 9,     // 9:00 AM
+    closeDay: 5,     // Friday
+    closeHour: 15,   // 3:00 PM
+    deliveryDay: 6   // Saturday
 };
 
 // ===== Phase 1: Minimum Order =====
@@ -252,7 +252,7 @@ const translations = {
         step4Title: "4. Home Delivery",
         step4Text: "Delivered straight to your door, fast and fresh.",
         productsTitle: "🌾 This Week's Harvest",
-        productsSubtitle: "Fresh picks available for Sunday delivery",
+        productsSubtitle: "Fresh picks available for Saturday delivery (Delivering a day early due to farm availability & high demand!)",
         filterAll: "All",
         filterLeafy: "Leafy Vegetables",
         filterRoot: "Root Vegetables",
@@ -325,8 +325,8 @@ const translations = {
 
         // Phase 1: Ordering Window
         bannerLiveTitle: "This Week's Harvest is LIVE!",
-        bannerLiveSubtext: "Order by Saturday 6 PM for Sunday delivery",
-        bannerClosedTitle: "Ordering Opens Friday 9 AM",
+        bannerLiveSubtext: "Order by Friday 3 PM for Saturday delivery (Temporarily moved 1 day earlier for maximum freshness)",
+        bannerClosedTitle: "Ordering Opens Thursday 9 AM",
         bannerClosedSubtext: "Browse our catalog and plan your weekly basket",
         bannerClosesIn: "Closes in:",
         bannerOpensIn: "Opens in:",
@@ -353,7 +353,7 @@ const translations = {
         minOrderText: "Add {n} more item(s) to meet minimum order of 2 items",
 
         // Phase 1: Window Closed
-        windowClosedText: "Ordering opens Friday 9 AM. You can browse and build your cart now.",
+        windowClosedText: "Ordering opens Thursday 9 AM. You can browse and build your cart now.",
 
         // Phase 1: Qty Tooltip
         kattaTooltip: "1 katta ≈ fresh bunch bundle",
@@ -364,7 +364,7 @@ const translations = {
         badgeFarmerPick: "⭐ Farmer's Pick",
 
         // Phase 1: WhatsApp Message
-        waDeliveryDay: "Sunday",
+        waDeliveryDay: "Saturday (One day early due to farm availability)",
         waPayment: "Cash on Delivery"
     },
     te: {
@@ -401,7 +401,7 @@ const translations = {
         step4Title: "4. ఇంటి వద్దకే డెలివరీ",
         step4Text: "తాజాగా మరియు వేగంగా నేరుగా మీ ఇంటి వద్దకే డెలివరీ చేయబడుతుంది.",
         productsTitle: "🌾 ఈ వారపు పంట",
-        productsSubtitle: "ఆదివారం డెలివరీ కోసం తాజా ఎంపికలు",
+        productsSubtitle: "శనివారం డెలివరీ కోసం తాజా ఎంపికలు (పంట లభ్యత మరియు కస్టమర్ల అభ్యర్థన మేరకు ఒక రోజు ముందుగా)",
         filterAll: "అన్నీ",
         filterLeafy: "ఆకుకూరలు",
         filterRoot: "దుంపలు",
@@ -473,8 +473,8 @@ const translations = {
         btnOutOfStock: "స్టాక్ లేదు",
 
         bannerLiveTitle: "ఈ వారపు పంట LIVE!",
-        bannerLiveSubtext: "ఆదివారం డెలివరీ కోసం శనివారం 6 PM లోపు ఆర్డర్ చేయండి",
-        bannerClosedTitle: "ఆర్డరింగ్ శుక్రవారం 9 AM న ప్రారంభం",
+        bannerLiveSubtext: "శనివారం డెలివరీ కోసం శుక్రవారం 3 PM లోపు ఆర్డర్ చేయండి (తాజా పంటల లభ్యత కోసం 1 రోజు ముందుగా)",
+        bannerClosedTitle: "ఆర్డరింగ్ గురువారం 9 AM న ప్రారంభం",
         bannerClosedSubtext: "మా క్యాటలాగ్ చూసి మీ వారపు బాస్కెట్ ప్లాన్ చేయండి",
         bannerClosesIn: "ముగుస్తుంది:",
         bannerOpensIn: "తెరుచుకుంటుంది:",
@@ -497,14 +497,14 @@ const translations = {
         categoryComingSoonSub: "క్షమించండి, ఈ విభాగంలో ఈరోజు తాజా పంట అందుబాటులో లేదు. దయచేసి తర్వాత సందర్శించండి!",
 
         minOrderText: "కనీస ఆర్డర్ 2 వస్తువులు చేరుకోవడానికి మరో {n} వస్తువులను జోడించండి",
-        windowClosedText: "ఆర్డరింగ్ శుక్రవారం 9 AM న తెరుచుకుంటుంది. మీరు ఇప్పుడు బ్రౌజ్ చేయవచ్చు.",
+        windowClosedText: "ఆర్డరింగ్ గురువారం 9 AM న తెరుచుకుంటుంది. మీరు ఇప్పుడు బ్రౌజ్ చేయవచ్చు.",
         kattaTooltip: "1 కట్ట ≈ తాజా కట్ట బండిల్",
 
         badgeFreshHarvest: "🌱 తాజా పంట",
         badgeLimited: "⚡ పరిమిత సంఖ్య",
         badgeFarmerPick: "⭐ రైతు ఎంపిక",
 
-        waDeliveryDay: "ఆదివారం",
+        waDeliveryDay: "శనివారం (రైతు పంట లభ్యతను బట్టి ఒక రోజు ముందుగా)",
         waPayment: "క్యాష్ ఆన్ డెలివరీ"
     }
 };
@@ -1192,10 +1192,9 @@ function updateOrderingWindowBanner() {
     const harvestDateText = document.getElementById('harvestDateText');
     if (harvestDateText) {
         const now = new Date();
-        const fridayDate = new Date(now);
-        const dayDiff = (5 - now.getDay() + 7) % 7;
-        fridayDate.setDate(now.getDate() - ((now.getDay() + 7 - 5) % 7));
-        const dateStr = fridayDate.toLocaleDateString(currentLang === 'te' ? 'te-IN' : 'en-IN', { weekday: 'long', month: 'short', day: 'numeric' });
+        const harvestDate = new Date(now);
+        harvestDate.setDate(now.getDate() - ((now.getDay() + 7 - openDay) % 7));
+        const dateStr = harvestDate.toLocaleDateString(currentLang === 'te' ? 'te-IN' : 'en-IN', { weekday: 'long', month: 'short', day: 'numeric' });
         harvestDateText.textContent = `${dict.harvestUpdated} ${dateStr}`;
     }
 }
