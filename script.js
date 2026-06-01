@@ -1518,8 +1518,6 @@ function sendCartWhatsAppOrder() {
     message += `================================\n`;
 
     // Basket tier info
-    const uniqueItems = cartKeys.length;
-    const currentTier = detectBasketTier(uniqueItems);
     if (currentTier) {
         const tierNames = {
             family: dict.basketFamilyName || currentTier.name,
