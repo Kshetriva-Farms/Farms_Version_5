@@ -323,4 +323,23 @@ For queries, orders, or partner programs:
 - **Syntax Diagnostics**: Verified JavaScript code compilation integrity using Node compiler diagnostics (`node -c`), resolving critical duplicate variable declarations.
 - **Service Worker Cache-Busting**: Bumped the Service Worker cache version key to `kshetriva-farms-cache-v5` in `sw.js` and updated the script reference standard query parameter to `script.js?v=3.2` inside `index.html`. This invalidates the old cached assets instantly across all user devices, ensuring everyone receives the new scheduling and checkout engine immediately.
 
+### 🗓️ June 10, 2026
+
+#### 1. ⚙️ Sunday Delivery & Friday 1:00 PM Window Re-Alignment
+- **Window Schedule Adjustment**: Configured ordering window bounds in `script.js` to open on **Thursday 1:00 PM** and close on **Friday 1:00 PM** with delivery set on **Sunday**.
+- **Bilingual Copy Updates**: Updated harvest banners, delivery headers, and checkout summaries to reflect the Sunday delivery schedule and Friday 1:00 PM cutoff in English and Telugu.
+- **Service Worker Cache-Busting**: Bumped cache version to `kshetriva-farms-cache-v9` in `sw.js` to clear cached code immediately.
+
+#### 2. 🚛 Fixed Delivery Charge Integration
+- **Display and Total Math**: Integrated a fixed delivery charge of **₹49** (with **₹69** shown as striked-off) inside the cart totals grid, WhatsApp invoice text (`~₹69~ ₹49`), and GA4 event parameters.
+- **Smart Validations**: Isolated minimum order validations to run based on the products' discounted subtotal before delivery charges are added.
+
+#### 3. 🌿 Linear Leafy Product Multipliers
+- **Options Refactoring**: Reconfigured `QTY_TEMPLATES.leafy` to employ linear multipliers (2 Katta = 2x base price, 4 Katta = 4x base price, 8 Katta = 8x base price) to disable dynamic volume discounts on bundles.
+
+#### 4. 👨‍🌾 Farmer Spotlights & Asset Sync
+- **Bhaskar's Image Optimization**: Replaced `farmer_bhaskar.png` with the high-resolution portrait `farmer_bhaskar.jpg` under `images/`, and added `object-position: center 15%` style in `index.html` to perfectly focus and zoom-out the subject in the farmer grid.
+- **Remote Asset Merging**: Fetched and merged remote commits, successfully retrieving missing leafy crop images (`Thota_kura.webp`, `gongura.webp`, `green_chilli.webp`) from the repository.
+
+
 

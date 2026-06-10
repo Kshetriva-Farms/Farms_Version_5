@@ -30,9 +30,9 @@ const QTY_TEMPLATES = {
         { label: '1 kg', value: '1kg', price: null, multiplier: 1 }
     ],
     leafy: [
-        { label: '2 Katta', value: '2_katta', price: null, multiplier: 1.8 },
-        { label: '4 Katta', value: '4_katta', price: null, multiplier: 3.5 },
-        { label: '8 Katta', value: '8_katta', price: null, multiplier: 6.5 }
+        { label: '2 Katta', value: '2_katta', price: null, multiplier: 2 },
+        { label: '4 Katta', value: '4_katta', price: null, multiplier: 4 },
+        { label: '8 Katta', value: '8_katta', price: null, multiplier: 8 }
     ],
     premium: [
         { label: '1 Piece', value: '1_pc', price: null, multiplier: 1 },
@@ -65,8 +65,8 @@ const ORDERING_SCHEDULE = {
     openDay: 4,      // Thursday (0=Sunday)
     openHour: 13,    // 1:00 PM
     closeDay: 5,     // Friday
-    closeHour: 15,   // 3:00 PM
-    deliveryDay: 6   // Saturday
+    closeHour: 13,   // 1:00 PM
+    deliveryDay: 0   // Sunday
 };
 
 // ===== Phase 1: Minimum Order =====
@@ -252,7 +252,7 @@ const translations = {
         step4Title: "4. Home Delivery",
         step4Text: "Delivered straight to your door, fast and fresh.",
         productsTitle: "🌾 This Week's Harvest",
-        productsSubtitle: "Fresh picks available for Saturday delivery (Delivering a day early due to farm availability & high demand!)",
+        productsSubtitle: "Fresh picks available for Sunday delivery",
         filterAll: "All",
         filterLeafy: "Leafy Vegetables",
         filterRoot: "Root Vegetables",
@@ -325,7 +325,7 @@ const translations = {
 
         // Phase 1: Ordering Window
         bannerLiveTitle: "This Week's Harvest is LIVE!",
-        bannerLiveSubtext: "Order by Friday 3 PM for Saturday delivery (Temporarily moved 1 day earlier for maximum freshness)",
+        bannerLiveSubtext: "Order by Friday 1 PM for Sunday delivery",
         bannerClosedTitle: "Ordering Opens Thursday 1 PM",
         bannerClosedSubtext: "Browse our catalog and plan your weekly basket",
         bannerClosesIn: "Closes in:",
@@ -364,7 +364,7 @@ const translations = {
         badgeFarmerPick: "⭐ Farmer's Pick",
 
         // Phase 1: WhatsApp Message
-        waDeliveryDay: "Saturday (One day early due to farm availability)",
+        waDeliveryDay: "Sunday",
         waPayment: "Cash on Delivery"
     },
     te: {
@@ -401,7 +401,7 @@ const translations = {
         step4Title: "4. ఇంటి వద్దకే డెలివరీ",
         step4Text: "తాజాగా మరియు వేగంగా నేరుగా మీ ఇంటి వద్దకే డెలివరీ చేయబడుతుంది.",
         productsTitle: "🌾 ఈ వారపు పంట",
-        productsSubtitle: "శనివారం డెలివరీ కోసం తాజా ఎంపికలు (పంట లభ్యత మరియు కస్టమర్ల అభ్యర్థన మేరకు ఒక రోజు ముందుగా)",
+        productsSubtitle: "ఆదివారం డెలివరీ కోసం తాజా ఎంపికలు",
         filterAll: "అన్నీ",
         filterLeafy: "ఆకుకూరలు",
         filterRoot: "దుంపలు",
@@ -473,7 +473,7 @@ const translations = {
         btnOutOfStock: "స్టాక్ లేదు",
 
         bannerLiveTitle: "ఈ వారపు పంట LIVE!",
-        bannerLiveSubtext: "శనివారం డెలివరీ కోసం శుక్రవారం 3 PM లోపు ఆర్డర్ చేయండి (తాజా పంటల లభ్యత కోసం 1 రోజు ముందుగా)",
+        bannerLiveSubtext: "ఆదివారం డెలివరీ కోసం శుక్రవారం 1 PM లోపు ఆర్డర్ చేయండి",
         bannerClosedTitle: "ఆర్డరింగ్ గురువారం 1 PM న ప్రారంభం",
         bannerClosedSubtext: "మా క్యాటలాగ్ చూసి మీ వారపు బాస్కెట్ ప్లాన్ చేయండి",
         bannerClosesIn: "ముగుస్తుంది:",
@@ -504,7 +504,7 @@ const translations = {
         badgeLimited: "⚡ పరిమిత సంఖ్య",
         badgeFarmerPick: "⭐ రైతు ఎంపిక",
 
-        waDeliveryDay: "శనివారం (రైతు పంట లభ్యతను బట్టి ఒక రోజు ముందుగా)",
+        waDeliveryDay: "ఆదివారం",
         waPayment: "క్యాష్ ఆన్ డెలివరీ"
     }
 };
@@ -1394,7 +1394,7 @@ function updateCartUI() {
         }
     }
 
-    // Phase 2: Update Delivery Charges (Struck-off ₹49, Free ₹0)
+    // Phase 2: Update Delivery Charges (Struck-off ₹69, Fixed ₹49)
     const cartDeliveryRow = document.getElementById('cartDeliveryRow');
     if (cartDeliveryRow) {
         cartDeliveryRow.style.display = 'flex';
@@ -1404,15 +1404,17 @@ function updateCartUI() {
             deliveryLabelEl.textContent = dict.deliveryLabel || 'Delivery Charges:';
         }
         if (cartDeliverySumEl) {
-            cartDeliverySumEl.innerHTML = `<del style="color: #888; margin-right: 5px;">₹49</del> <span style="color: #2e7d32; font-weight: 600;">₹0 (${dict.freeDelivery || 'Free Delivery'})</span>`;
+            cartDeliverySumEl.innerHTML = `<del style="color: #888; margin-right: 5px;">₹69</del> <span style="color: #2e7d32; font-weight: 600;">₹49</span>`;
         }
     }
 
+    const itemsTotal = finalTotal;
+    finalTotal = itemsTotal + 49;
     cartTotalSum.textContent = `₹${finalTotal}`;
 
     // Phase 1: Minimum order check - 3 products OR total > 99
     let checkoutBlocked = false;
-    if (uniqueItems < 3 && finalTotal <= 99) {
+    if (uniqueItems < 3 && itemsTotal <= 99) {
         if (minOrderNotice) {
             const textSpan = document.getElementById('minOrderText');
             if (textSpan) {
@@ -1549,15 +1551,23 @@ function sendCartWhatsAppOrder() {
 
     message += `================================\n`;
 
+    const deliveryCharge = 49;
+    let finalTotal = subtotal;
+
     if (currentTier) {
         const discountAmt = Math.round(subtotal * currentTier.discount * 100) / 100;
-        const finalTotal = Math.round((subtotal - discountAmt) * 100) / 100;
+        const itemsTotal = Math.round((subtotal - discountAmt) * 100) / 100;
+        finalTotal = itemsTotal + deliveryCharge;
         const pctLabel = Math.round(currentTier.discount * 100);
         message += isTe ? `ఉప మొత్తం: ₹${subtotal}\n` : `Subtotal: ₹${subtotal}\n`;
         message += isTe ? `బాస్కెట్ తగ్గింపు (${pctLabel}%): -₹${discountAmt}\n` : `Basket Discount (${pctLabel}%): -₹${discountAmt}\n`;
+        message += isTe ? `డెలివరీ ఛార్జీలు: ~₹69~ ₹${deliveryCharge}\n` : `Delivery Charges: ~₹69~ ₹${deliveryCharge}\n`;
         message += isTe ? `*మొత్తం: ₹${finalTotal}*\n\n` : `*Total: ₹${finalTotal}*\n\n`;
     } else {
-        message += isTe ? `*మొత్తం చెల్లింపు:* ₹${subtotal}\n\n` : `*Total Amount:* ₹${subtotal}\n\n`;
+        finalTotal = subtotal + deliveryCharge;
+        message += isTe ? `ఉప మొత్తం: ₹${subtotal}\n` : `Subtotal: ₹${subtotal}\n`;
+        message += isTe ? `డెలివరీ ఛార్జీలు: ~₹69~ ₹${deliveryCharge}\n` : `Delivery Charges: ~₹69~ ₹${deliveryCharge}\n`;
+        message += isTe ? `*మొత్తం చెల్లింపు: ₹${finalTotal}*\n\n` : `*Total Amount: ₹${finalTotal}*\n\n`;
     }
 
     message += `📅 ${isTe ? 'డెలివరీ:' : 'Delivery:'} ${dict.waDeliveryDay}\n`;
@@ -1565,7 +1575,7 @@ function sendCartWhatsAppOrder() {
     message += isTe ? `_డెలివరీ చిరునామా వివరాలు ఇక్కడ షేర్ చేయబడతాయి._` : `_Delivery address details will be shared._`;
 
     trackGA4Event('whatsapp_order_checkout', {
-        value: subtotal,
+        value: finalTotal,
         currency: 'INR',
         items_count: cartKeys.length,
         basket_tier: currentTier ? currentTier.id : 'none'
