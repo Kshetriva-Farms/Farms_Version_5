@@ -324,8 +324,8 @@ const translations = {
         btnOutOfStock: "Out of Stock",
 
         // Phase 1: Ordering Window
-        bannerLiveTitle: "This Week's Harvest is LIVE!",
-        bannerLiveSubtext: "Order by Friday 1 PM for Sunday delivery",
+        bannerLiveTitle: "Order by Friday 1 PM",
+        bannerLiveSubtext: "For Sunday delivery (Fresh from farm directly to your home)",
         bannerClosedTitle: "Ordering Opens Thursday 1 PM",
         bannerClosedSubtext: "Browse our catalog and plan your weekly basket",
         bannerClosesIn: "Closes in:",
@@ -472,8 +472,8 @@ const translations = {
         outOfStock: "స్టాక్ లేదు",
         btnOutOfStock: "స్టాక్ లేదు",
 
-        bannerLiveTitle: "ఈ వారపు పంట LIVE!",
-        bannerLiveSubtext: "ఆదివారం డెలివరీ కోసం శుక్రవారం 1 PM లోపు ఆర్డర్ చేయండి",
+        bannerLiveTitle: "శుక్రవారం 1 PM లోపు ఆర్డర్ చేయండి",
+        bannerLiveSubtext: "ఆదివారం డెలివరీ కోసం (పొలం నుండి నేరుగా మీ ఇంటికి)",
         bannerClosedTitle: "ఆర్డరింగ్ గురువారం 1 PM న ప్రారంభం",
         bannerClosedSubtext: "మా క్యాటలాగ్ చూసి మీ వారపు బాస్కెట్ ప్లాన్ చేయండి",
         bannerClosesIn: "ముగుస్తుంది:",

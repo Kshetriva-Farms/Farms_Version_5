@@ -327,8 +327,8 @@ For queries, orders, or partner programs:
 
 #### 1. ⚙️ Sunday Delivery & Friday 1:00 PM Window Re-Alignment
 - **Window Schedule Adjustment**: Configured ordering window bounds in `script.js` to open on **Thursday 1:00 PM** and close on **Friday 1:00 PM** with delivery set on **Sunday**.
-- **Bilingual Copy Updates**: Updated harvest banners, delivery headers, and checkout summaries to reflect the Sunday delivery schedule and Friday 1:00 PM cutoff in English and Telugu.
-- **Service Worker Cache-Busting**: Bumped cache version to `kshetriva-farms-cache-v9` in `sw.js` to clear cached code immediately.
+- **Bilingual Copy Updates**: Updated harvest banners (setting "Order by Friday 1 PM" as the main banner title when live), delivery headers, and checkout summaries to reflect the Sunday delivery schedule and Friday 1:00 PM cutoff in English and Telugu.
+- **Service Worker Cache-Busting**: Bumped cache version to `kshetriva-farms-cache-v10` in `sw.js` to clear cached code immediately.
 
 #### 2. 🚛 Fixed Delivery Charge Integration
 - **Display and Total Math**: Integrated a fixed delivery charge of **₹49** (with **₹69** shown as striked-off) inside the cart totals grid, WhatsApp invoice text (`~₹69~ ₹49`), and GA4 event parameters.
