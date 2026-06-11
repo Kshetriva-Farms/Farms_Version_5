@@ -342,5 +342,27 @@ For queries, orders, or partner programs:
 - **Bhaskar's Image Optimization**: Replaced `farmer_bhaskar.png` with the high-resolution portrait `farmer_bhaskar.jpg` under `images/`, and added `object-position: center 15%` style in `index.html` to perfectly focus and zoom-out the subject in the farmer grid.
 - **Remote Asset Merging**: Fetched and merged remote commits, successfully retrieving missing leafy crop images (`Thota_kura.webp`, `gongura.webp`, `green_chilli.webp`) from the repository.
 
+### 🗓️ June 12, 2026
+
+#### 1. ⏱️ Ordering Window Adjustment (Friday 12:00 PM Open)
+- **Schedule Re-Alignment**: Configured the storefront ordering schedule open-window bounds in `script.js` to open on **Friday at 12:00 PM (Noon)** (openHour: 12) instead of 1:00 PM.
+- **Bilingual Banners and Binders**: Updated static closed-window elements in `index.html` and dynamic translation templates in `script.js` (for English and Telugu) to notify buyers that ordering opens at Friday 12 PM.
+
+#### 2. 📝 Integrated Tabbed Multi-Blog Architecture (`blog.html`)
+- **Single-Page Unified Blog**: Combined both "Why Farm-Fresh Vegetables Last Longer" and "How Much Pesticide Usage Is Safe in Vegetables?" articles into `blog.html`.
+- **Premium Tab Interface**: Introduced two large, responsive selection buttons matching Outfit/Inter typography that dynamically toggle active article visibility.
+- **Dynamic Routing and State Synchronization**: Refactored `blog.js` to parse URL hashes (`#freshness` vs `#pesticides`), automatically toggling visibility, updating hero banner text/metadata, and updating document titles smoothly.
+- **Routing Redirect Fallback**: Replaced `blog-pesticides.html` with a meta-refresh redirect routing traffic to `blog.html#pesticides` to prevent dead links.
+
+#### 3. 📸 Premium Asset Refinements
+- **Wooden Crate Imagery**: Extracted two distinct high-fidelity crops from a user-uploaded mockup:
+  - Crate on the doorstep saved as `images/blog_delivery_box.png` (displays under pesticide safety consumer effects).
+  - Crate on the truck saved as `images/delivery_box.webp` (displays in the main landing page Farm Gallery "Ready for Delivery").
+- **Multi-Version Sync**: Copied the new image assets to all version folders (`Farms_Version_1`, `Farms_Version_2`, and `Farms_Version_4`).
+
+#### 4. ⚡ PWA Service Worker Invalidation
+- **Cache-Busting**: Added `blog-pesticides.html` to the cached assets list and bumped the Service Worker version to `kshetriva-farms-cache-v15` in `sw.js` to clear client caches immediately.
+
+
 
 
