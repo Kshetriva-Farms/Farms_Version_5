@@ -26,13 +26,21 @@ In **Version 2**, the platform has transitioned from a static client-side applic
 - **Automatic Catalog Seeding:** On the very first launch, if the Firestore `products` collection is empty, a cloud batch write automatically seeds the database with 9 premium default agricultural catalog documents.
 
 ### 🛡️ Secure Admin Dashboard Portal
-- **Hash-URL Router Access:** Secured admin route accessible via `#admin` hash navigation (`/index.html#admin`).
-- **Firebase Authentication:** Restricts entry using secure authentication (`signInWithEmailAndPassword`, `signOut`, `onAuthStateChanged`).
-- **Offline Authentication Fallback:** Offers offline administrators local sandbox testing using mock credentials:
-  - **Email:** `admin@kshetrivafarms.com`
-  - **Password:** `admin123`
-- **Dynamic Stats Grid:** A visual overview banner showing running counters for **Total Products**, **In Stock**, and **Out of Stock** items.
-- **Comprehensive CRUD Console:**
+- **Hash-URL Router Access**: Secured admin route accessible via `#admin` hash navigation (`/index.html#admin`).
+- **Firebase Authentication**: Restricts entry using secure authentication (`signInWithEmailAndPassword`, `signOut`, `onAuthStateChanged`).
+- **Offline Authentication Fallback**: Offers offline administrators local sandbox testing using mock credentials:
+  - **Email**: `admin@kshetrivafarms.com`
+  - **Password**: `admin123`
+- **Tabbed Dashboard Interface**: Introduces a dual-tab selector toggle to seamlessly switch between **Manage Catalog** (inventory CRUD management) and **Customer Leads** tab panels.
+- **Dynamic Stats Grid**: Displays running live counters for **Total Products**, **In Stock**, **Out of Stock**, and **Total Leads** registers.
+- **Customer Leads Visualizer**: Renders a comprehensive tabular logs list for captured customer contacts. Features:
+  - Date and Time formatting (`toLocaleString('en-IN')`).
+  - Contact Name & Locality.
+  - Direct clickable contact links (`tel:` dial links and custom `wa.me` WhatsApp direct chat links).
+  - Lead source badges (green `Order` vs blue `Chat`).
+  - Shopping cart details/receipt summary (items count and total value metrics).
+  - Quick-action buttons to delete individual leads from the database.
+- **Comprehensive CRUD Console**:
   - **Create:** Instantly add new farm produce complete with English/Telugu names, custom categories, unit mappings, pricing metrics, and image sourcing paths.
   - **Read:** A tabular list displaying optimized images, multilingual tags, categories, pricing, stock levels, and quick-action triggers.
   - **Update:** Pre-populates product records into an overlay form for editing.
@@ -62,9 +70,11 @@ In **Version 2**, the platform has transitioned from a static client-side applic
 - **Sticky Blur Navbar:** Floating header using `backdrop-filter: blur()` to stay floating transparently as users scroll.
 - **Responsive Utilities:** Smooth scroll triggers, mobile menu slide-out drawer, and dual floating utility buttons (quick-access cart and instant WhatsApp chat).
 
-### 💬 WhatsApp Checkout Integration
-- Formulates a premium, formatted checkout invoice directly in English or Telugu based on user selection.
-- Calculates sub-totals, items, and quantities, formats them cleanly into markdown, and launches an encoded direct link to the business WhatsApp channel.
+### 💬 WhatsApp Checkout & Lead Capture Integration
+- **WhatsApp Click Interception**: Intercepts direct WhatsApp redirects from the cart drawer checkout, Hero section chat, and floating utility chat buttons to run a user detail collection workflow.
+- **Delivery Details Modal Form**: Intercepts contact requests to display a custom bilingual popup modal asking for customer **Name**, **WhatsApp Phone Number**, and **Area/Locality**.
+- **Friction-Free Caching**: Caches user details in browser local storage (`kshetriva_customer_info`) to auto-fill inputs on subsequent checkouts/contacts, removing submission friction.
+- **Dynamic Pre-pended Receipts**: Prepends customer Name, Phone, and Area to both WhatsApp invoices and general enquiry chat messages automatically.
 
 ---
 
@@ -377,4 +387,15 @@ For queries, orders, or partner programs:
 #### 2. 🎟️ Coupon Code 'Delivery30' Implementation
 - **Delivery Discount Engine**: Added a bilingual coupon code system checking for code `Delivery30` inside the shopping basket footer.
 - **Dynamic Cost Sync**: Successful coupon application drops standard delivery charges from ₹49 to ₹30, dynamically adjusting checkout totals, totals breakdown labels, and WhatsApp formatted checkout invoices seamlessly.
+
+### 🗓️ June 19, 2026
+
+#### 1. 💬 WhatsApp Leads Capture Modal & secure Admin Dashboard visualizer (Version 3.5)
+- **WhatsApp Clicks Interception**: Added javascript hooks to intercept user click events on `#whatsappOrderBtn`, `.hero-btns .btn-whatsapp`, and `.whatsapp-float` buttons.
+- **Contact Details Modal**: Deployed an overlay form modal (`#whatsappDetailsModal`) prompting for Name, WhatsApp Phone, and Area/Locality in English and Telugu.
+- **Leads Storage Platform**: Developed database handlers to save submitted details to either Firestore collection `leads` (when online) or fallback `localStorage` key `kshetriva_leads`. Limited entries to the **latest 100 details** using automated query batch deletion (for Firestore) and slice routines (for LocalStorage).
+- **Auto-Fill Caching**: Saves submitted details under browser cache `kshetriva_customer_info` to pre-populate inputs on subsequent contacts.
+- **Pre-pended Details Receipt**: Prepends Name, Phone, and Area to WhatsApp order receipts and chat templates dynamically.
+- **Admin Leads Visualization**: Integrated a new tabbed workspace in the `#admin` Dashboard with a complete leads directory table, direct dial/chat links, and deletion triggers.
+- **Service Worker Cache-Busting**: Bumped script version parameter inside `index.html` to `v=3.8` and incremented Service Worker cache name to `kshetriva-farms-cache-v18` in `sw.js` to clear client caches immediately.
 
