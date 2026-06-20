@@ -1817,14 +1817,14 @@ if (detailsForm) {
             cartSummary
         };
         
-        saveLeadToDatabase(lead, () => {
-            if (detailsModal) detailsModal.classList.remove('open');
-            if (type === 'order') {
-                sendCartWhatsAppOrder(name, phone, area);
-            } else {
-                sendChatWhatsAppMessage(name, phone, area);
-            }
-        });
+        // Save the lead asynchronously in the background so Safari doesn't block the synchronous redirect below
+        saveLeadToDatabase(lead);
+        if (detailsModal) detailsModal.classList.remove('open');
+        if (type === 'order') {
+            sendCartWhatsAppOrder(name, phone, area);
+        } else {
+            sendChatWhatsAppMessage(name, phone, area);
+        }
     });
 }
 

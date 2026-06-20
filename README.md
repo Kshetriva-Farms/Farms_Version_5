@@ -403,3 +403,8 @@ For queries, orders, or partner programs:
 - **Optimal Firestore Security Rules**: Created [firestore.rules](file:///d:/Kshetriva_farms/Farms_Version_3.5/firestore.rules) to permit unauthenticated write access (`create` only) to the `leads` collection. This allows customers on all devices to successfully write leads to the shared Firestore DB instead of falling back to device-specific `localStorage`.
 - **Dynamic Database Sync Status**: Integrated a connection status indicator badge (`#adminSyncBadge`) in the Admin Dashboard header (modified [index.html](file:///d:/Kshetriva_farms/Farms_Version_3.5/index.html) and [script.js](file:///d:/Kshetriva_farms/Farms_Version_3.5/script.js)). Displays real-time database connection statuses (`Live Connected`, `Database Error (Check Rules)`, or `Offline Mode (Local Only)`) to simplify database connectivity troubleshooting.
 
+### 🗓️ June 20, 2026
+
+#### 1. 💬 Safari WhatsApp Redirection Fix (Version 3.5.2)
+- **Safari Popup Blocker Bypass**: Resolved an issue where the WhatsApp checkout and chat redirects were blocked by Safari's strict popup blocker. Changed the lead submission event flow to write customer data to the Firestore/Local database asynchronously in the background while opening the WhatsApp window/tab (`window.open`) synchronously in the primary user gesture thread.
+
