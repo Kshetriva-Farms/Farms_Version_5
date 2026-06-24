@@ -9,7 +9,7 @@
 
 Kshetriva Farms is a premium, high-performance single-page web application designed to connect hardworking local farmers from **Maryala, Telangana** directly with urban families. By eliminating middle-men, the platform ensures that families receive fresh, chemical-safe vegetables at fair prices, while local growers earn a sustainable, direct-to-consumer income.
 
-In **Version 2**, the platform has transitioned from a static client-side application into a **live, data-driven dynamic platform** powered by a real-time **Firebase Cloud Backend** and an advanced **Secure Admin Dashboard Portal**. This allows administrators to manage inventories, toggle stock levels, edit product metadata, and sync updates in real-time across all user screens without requiring page reloads.
+In **Version 4**, the platform has matured into a comprehensive **Business Administration and Customer Portal** adding detailed **Company Statistics & Analytics**, a **Temporal Weekly Product Cost Management** engine, detailed **Ordered Product break-downs** (for packing logistics), and an updated **Logistics Console**.
 
 ---
 
@@ -31,7 +31,11 @@ In **Version 2**, the platform has transitioned from a static client-side applic
 - **Offline Authentication Fallback**: Offers offline administrators local sandbox testing using mock credentials:
   - **Email**: `admin@kshetrivafarms.com`
   - **Password**: `admin123`
-- **Tabbed Dashboard Interface**: Introduces a dual-tab selector toggle to seamlessly switch between **Manage Catalog** (inventory CRUD management) and **Customer Leads** tab panels.
+- **Tabbed Dashboard Interface**: Introduces a three-tab selector toggle to seamlessly switch between **Manage Catalog** (inventory CRUD), **Customer Leads** (contact register), and **Company Statistics** (financial analytics) panels.
+- **Company Statistics & Financial Analytics**: Displays week-wise financial breakdowns including Total Sales, Total Expenses, Net Profit/Loss, and a detailed reconciliation system highlighting subtotal sales, expenses, applied coupons/discounts, and delivery fees.
+- **Temporal Cost Configuration**: Allows administrators to specify crop cost prices that apply to current and future weeks. Completed past weeks are permanently locked at their snapshot rates.
+- **Product Cost Management**: Features an inline save interface with automatic confirmation badges ("Saved ✓") on save, replacing disruptive popups.
+- **Packing Logistics Breakdown**: Replaced the top-demand listing with a full inventory breakout listing each crop's physical total weight and unit distribution (e.g. `2 Katta × 5`, `500g × 2`) to streamline farm packing.
 - **Dynamic Stats Grid**: Displays running live counters for **Total Products**, **In Stock**, **Out of Stock**, and **Total Leads** registers.
 - **Customer Leads Visualizer**: Renders a comprehensive tabular logs list for captured customer contacts. Features:
   - Date and Time formatting (`toLocaleString('en-IN')`).
@@ -113,7 +117,7 @@ Kshetriva_farms/
 │   ├── Kshetriva_video.mp4  # HD 1080p full background video
 │   └── Kshetriva_video_720p.mp4  # Optimized HD 720p video
 │
-└── README.md         # Detailed Version 2 documentation
+└── README.md         # Detailed Version 4 documentation
 ```
 
 ---
@@ -407,4 +411,16 @@ For queries, orders, or partner programs:
 
 #### 1. 💬 Safari WhatsApp Redirection Fix (Version 3.5.2)
 - **Safari Popup Blocker Bypass**: Resolved an issue where the WhatsApp checkout and chat redirects were blocked by Safari's strict popup blocker. Changed the lead submission event flow to write customer data to the Firestore/Local database asynchronously in the background while opening the WhatsApp window/tab (`window.open`) synchronously in the primary user gesture thread.
+
+### 🗓️ June 25, 2026
+
+#### 1. 📊 Company Statistics & Financial Reconciliation (Version 4.0)
+- **Financial Reporting**: Added a secure Company Statistics tab to the Admin Dashboard listing week-by-week total sales, total actual crop expenses, and net profit calculations.
+- **Temporal Week boundaries**: Cost price updates apply strictly to the present/future weeks. Historical weeks' cost metrics are frozen upon closing to prevent retrospective alteration of financial records.
+- **Inline Cost Save**: Replaced disruptive JS alerts with inline checkmark state changes (`"Saved ✓"` for 1.5 seconds) on product cost settings.
+
+#### 2. 📦 Quantity Scaling & Packing Logistics (Version 4.0)
+- **Unit Multipliers**: Added weight/piece/bundle scaling calculations (`getOptionMultiplier`) to resolve product quantity mismatches (such as legacy options and `500g * 2 = 1kg` instead of `2kg`).
+- **Ordered Products in Quantity**: Replaced the legacy demand leaderboard with a detailed packing dashboard showing aggregated weights and variant counts (e.g. `2 Katta × 5`, `500g × 2`).
+- **Logistics Clean-up**: Removed "Delivery Status" select options, delivery columns, and farmer ownership mappings from the Logistics Table and order catalog modal to satisfy security and privacy constraints.
 
