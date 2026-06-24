@@ -84,6 +84,7 @@ let products = [
         type: "leafy",
         price: "₹20",
         pricePerUnit: 20,
+        costPrice: 12,
         unit: "bunch",
         image: "images/spinach.webp",
         inStock: true,
@@ -97,6 +98,7 @@ let products = [
         type: "regular",
         price: "₹60",
         pricePerUnit: 60,
+        costPrice: 36,
         unit: "kg",
         image: "images/carrots.webp",
         inStock: true,
@@ -110,10 +112,12 @@ let products = [
         type: "regular",
         price: "₹50",
         pricePerUnit: 50,
+        costPrice: 30,
         unit: "kg",
         image: "images/tomatoes.webp",
         inStock: true,
-        badge: "fresh_harvest"
+        badge: "fresh_harvest",
+        farmerId: 3
     },
     {
         id: 4,
@@ -122,10 +126,12 @@ let products = [
         type: "premium",
         price: "₹400",
         pricePerUnit: 400,
+        costPrice: 240,
         unit: "dozen",
         image: "images/mangoes.webp",
         inStock: true,
-        badge: "farmer_pick"
+        badge: "farmer_pick",
+        farmerId: 3
     },
     {
         id: 5,
@@ -134,10 +140,12 @@ let products = [
         type: "premium",
         price: "₹30",
         pricePerUnit: 30,
+        costPrice: 18,
         unit: "pc",
         image: "images/cabbage.webp",
         inStock: true,
-        badge: ""
+        badge: "",
+        farmerId: 2
     },
     {
         id: 6,
@@ -146,10 +154,12 @@ let products = [
         type: "regular",
         price: "₹30",
         pricePerUnit: 30,
+        costPrice: 18,
         unit: "kg",
         image: "images/potatoes.webp",
         inStock: true,
-        badge: ""
+        badge: "",
+        farmerId: 1
     },
     {
         id: 7,
@@ -158,10 +168,12 @@ let products = [
         type: "leafy",
         price: "₹15",
         pricePerUnit: 15,
+        costPrice: 9,
         unit: "bunch",
         image: "images/coriander.webp",
         inStock: true,
-        badge: "fresh_harvest"
+        badge: "fresh_harvest",
+        farmerId: 2
     },
     {
         id: 8,
@@ -170,10 +182,12 @@ let products = [
         type: "regular",
         price: "₹60",
         pricePerUnit: 60,
+        costPrice: 36,
         unit: "kg",
         image: "images/lady_finger.webp",
         inStock: true,
-        badge: ""
+        badge: "",
+        farmerId: 3
     },
     {
         id: 9,
@@ -182,10 +196,12 @@ let products = [
         type: "premium",
         price: "₹40",
         pricePerUnit: 40,
+        costPrice: 24,
         unit: "pc",
         image: "images/bottle_gourd.webp",
         inStock: true,
-        badge: "limited"
+        badge: "limited",
+        farmerId: 3
     }
 ];
 
@@ -328,7 +344,7 @@ const translations = {
 
         // Phase 1: Ordering Window
         bannerLiveTitle: "Order by Saturday 9 PM",
-        bannerLiveSubtext: "For Sunday delivery (Fresh from farm directly to your home)",
+        bannerLiveSubtext: "Limited time only! Closes soon, place your order now.",
         bannerClosedTitle: "Ordering Opens Friday 12 PM",
         bannerClosedSubtext: "Browse our catalog and plan your weekly basket",
         bannerClosesIn: "Closes in:",
@@ -496,7 +512,7 @@ const translations = {
         btnOutOfStock: "స్టాక్ లేదు",
 
         bannerLiveTitle: "శనివారం 9 PM లోపు ఆర్డర్ చేయండి",
-        bannerLiveSubtext: "ఆదివారం డెలివరీ కోసం (పొలం నుండి నేరుగా మీ ఇంటికి)",
+        bannerLiveSubtext: "పరిమిత సమయం మాత్రమే! త్వరలో ముగుస్తుంది, ఇప్పుడే ఆర్డర్ చేయండి.",
         bannerClosedTitle: "ఆర్డరింగ్ శుక్రవారం 12 PM న ప్రారంభం",
         bannerClosedSubtext: "మా క్యాటలాగ్ చూసి మీ వారపు బాస్కెట్ ప్లాన్ చేయండి",
         bannerClosesIn: "ముగుస్తుంది:",
@@ -1269,13 +1285,13 @@ function updateOrderingWindowBanner() {
         if (isOpen) {
             banner.classList.remove('closed');
             titleEl.textContent = isTe ? "ఆర్డరింగ్ ఓపెన్ లో ఉంది" : "Ordering is Open";
-            subtextEl.textContent = isTe ? "అడ్మిన్ మాన్యువల్ ఓవర్‌రైడ్ యాక్టివ్‌గా ఉంది. మీరు ఇప్పుడు ఆర్డర్ చేయవచ్చు." : "Manual admin override active. You can place your orders now.";
-            countdownEl.textContent = isTe ? "స్థితి: ఓపెన్ (మాన్యువల్)" : "Status: Open (Manual)";
+            subtextEl.textContent = isTe ? "పరిమిత సమయం మాత్రమే! త్వరలో ముగుస్తుంది, ఇప్పుడే ఆర్డర్ చేయండి." : "Limited time only! Closes soon, place your order now.";
+            countdownEl.textContent = isTe ? "పరిమిత సమయం మాత్రమే" : "Limited Time Open";
         } else {
             banner.classList.add('closed');
             titleEl.textContent = isTe ? "ఆర్డరింగ్ క్లోజ్ చేయబడింది" : "Ordering is Closed";
-            subtextEl.textContent = isTe ? "అడ్మిన్ మాన్యువల్ ఓవర్‌రైడ్ యాక్టివ్‌గా ఉంది. దయచేసి తర్వాత ప్రయత్నించండి." : "Manual admin override active. Please check back later.";
-            countdownEl.textContent = isTe ? "స్థితి: క్లోజ్డ్ (మాన్యువల్)" : "Status: Closed (Manual)";
+            subtextEl.textContent = isTe ? "దయచేసి తర్వాత ప్రయత్నించండి." : "Please check back later.";
+            countdownEl.textContent = isTe ? "స్థితి: క్లోజ్డ్" : "Status: Closed";
         }
     } else {
         let timerText = "";
@@ -1760,6 +1776,12 @@ if (closeDetailsModalBtn && detailsModal) {
     });
 }
 
+function getFarmerIdForProduct(productId) {
+    if (productId === 2 || productId === 6) return 1; // Surendhar
+    if (productId === 1 || productId === 5 || productId === 7) return 2; // Bhaskar
+    return 3; // Raju (3, 4, 8, 9)
+}
+
 const detailsForm = document.getElementById('whatsappDetailsForm');
 if (detailsForm) {
     detailsForm.addEventListener('submit', (e) => {
@@ -1776,6 +1798,12 @@ if (detailsForm) {
         const timestamp = new Date().toISOString();
         const type = whatsappTriggerSource.type; // 'order' or 'chat'
         let cartSummary = "";
+        let items = [];
+        let totalAmount = 0;
+        let discountAmount = 0;
+        let deliveryCharge = 0;
+        let status = "harvesting";
+        let coupon = "";
         
         if (type === 'order') {
             const cartKeys = Object.keys(cart);
@@ -1791,18 +1819,33 @@ if (detailsForm) {
                     const price = cartEntry.optionPrice || parseInt((product.price || '0').replace(/[^\d]/g, ''));
                     subtotal += price * qty;
                     itemsCount += qty;
+                    
+                    const basePrice = rawProduct.pricePerUnit || parseInt((rawProduct.price || '0').replace(/[^\d]/g, ''));
+                    const itemCostPrice = (rawProduct.costPrice !== undefined) ? rawProduct.costPrice : Math.round(basePrice * 0.6);
+                    
+                    items.push({
+                        id: id,
+                        name: product.name,
+                        qty: qty,
+                        option: cartEntry.optionLabel || cartEntry.optionValue || '',
+                        price: price,
+                        total: price * qty,
+                        costPrice: itemCostPrice,
+                        category: rawProduct.category
+                    });
                 }
             });
             const uniqueItems = cartKeys.length;
             const currentTier = detectBasketTier(uniqueItems);
-            let deliveryCharge = appliedCoupon === 'Delivery30' ? 30 : 49;
-            let finalTotal = subtotal;
+            deliveryCharge = appliedCoupon === 'Delivery30' ? 30 : 49;
+            totalAmount = subtotal;
             if (currentTier) {
-                const discountAmt = Math.round(subtotal * currentTier.discount * 100) / 100;
-                finalTotal = Math.round((subtotal - discountAmt) * 100) / 100;
+                discountAmount = Math.round(subtotal * currentTier.discount * 100) / 100;
+                totalAmount = Math.round((subtotal - discountAmount) * 100) / 100;
             }
-            finalTotal += deliveryCharge;
-            cartSummary = `${itemsCount} items, Total: ₹${finalTotal}`;
+            totalAmount += deliveryCharge;
+            coupon = appliedCoupon || '';
+            cartSummary = `${itemsCount} items, Total: ₹${totalAmount}`;
         } else {
             cartSummary = "General Enquiry Chat";
         }
@@ -1814,7 +1857,13 @@ if (detailsForm) {
             area,
             timestamp,
             type,
-            cartSummary
+            cartSummary,
+            items,
+            totalAmount,
+            discountAmount,
+            deliveryCharge,
+            status,
+            coupon
         };
         
         // Save the lead asynchronously in the background so Safari doesn't block the synchronous redirect below
@@ -1898,10 +1947,12 @@ function seedDatabase() {
             type: "leafy",
             price: "₹20",
             pricePerUnit: 20,
+            costPrice: 12,
             unit: "bunch",
             image: "images/spinach.webp",
             inStock: true,
-            badge: "fresh_harvest"
+            badge: "fresh_harvest",
+            farmerId: 2
         },
         {
             id: 2,
@@ -1910,10 +1961,12 @@ function seedDatabase() {
             type: "regular",
             price: "₹60",
             pricePerUnit: 60,
+            costPrice: 36,
             unit: "kg",
             image: "images/carrots.webp",
             inStock: true,
-            badge: ""
+            badge: "",
+            farmerId: 1
         },
         {
             id: 3,
@@ -1922,10 +1975,12 @@ function seedDatabase() {
             type: "regular",
             price: "₹50",
             pricePerUnit: 50,
+            costPrice: 30,
             unit: "kg",
             image: "images/tomatoes.webp",
             inStock: true,
-            badge: "fresh_harvest"
+            badge: "fresh_harvest",
+            farmerId: 3
         },
         {
             id: 4,
@@ -1934,10 +1989,12 @@ function seedDatabase() {
             type: "premium",
             price: "₹400",
             pricePerUnit: 400,
+            costPrice: 240,
             unit: "dozen",
             image: "images/mangoes.webp",
             inStock: true,
-            badge: "farmer_pick"
+            badge: "farmer_pick",
+            farmerId: 3
         },
         {
             id: 5,
@@ -1946,10 +2003,12 @@ function seedDatabase() {
             type: "premium",
             price: "₹30",
             pricePerUnit: 30,
+            costPrice: 18,
             unit: "pc",
             image: "images/cabbage.webp",
             inStock: true,
-            badge: ""
+            badge: "",
+            farmerId: 2
         },
         {
             id: 6,
@@ -1958,10 +2017,12 @@ function seedDatabase() {
             type: "regular",
             price: "₹30",
             pricePerUnit: 30,
+            costPrice: 18,
             unit: "kg",
             image: "images/potatoes.webp",
             inStock: true,
-            badge: ""
+            badge: "",
+            farmerId: 1
         },
         {
             id: 7,
@@ -1970,10 +2031,12 @@ function seedDatabase() {
             type: "leafy",
             price: "₹15",
             pricePerUnit: 15,
+            costPrice: 9,
             unit: "bunch",
             image: "images/coriander.webp",
             inStock: true,
-            badge: "fresh_harvest"
+            badge: "fresh_harvest",
+            farmerId: 2
         },
         {
             id: 8,
@@ -1982,10 +2045,12 @@ function seedDatabase() {
             type: "regular",
             price: "₹60",
             pricePerUnit: 60,
+            costPrice: 36,
             unit: "kg",
             image: "images/lady_finger.webp",
             inStock: true,
-            badge: ""
+            badge: "",
+            farmerId: 3
         },
         {
             id: 9,
@@ -1994,10 +2059,12 @@ function seedDatabase() {
             type: "premium",
             price: "₹40",
             pricePerUnit: 40,
+            costPrice: 24,
             unit: "pc",
             image: "images/bottle_gourd.webp",
             inStock: true,
-            badge: "limited"
+            badge: "limited",
+            farmerId: 3
         }
     ];
 
@@ -2143,20 +2210,30 @@ function cleanupFirestoreLeads() {
 function switchAdminTab(tabName) {
     const tabCatalogBtn = document.getElementById('adminTabCatalogBtn');
     const tabLeadsBtn = document.getElementById('adminTabLeadsBtn');
+    const tabFounderBtn = document.getElementById('adminTabFounderBtn');
+    const tabCompanyStatsBtn = document.getElementById('adminTabCompanyStatsBtn');
     const tabSettingsBtn = document.getElementById('adminTabSettingsBtn');
+    
     const catalogSection = document.getElementById('adminCatalogSection');
     const leadsSection = document.getElementById('adminLeadsSection');
+    const founderSection = document.getElementById('adminFounderSection');
+    const companyStatsSection = document.getElementById('adminCompanyStatsSection');
     const settingsSection = document.getElementById('adminSettingsSection');
+    
     const addNewProductBtn = document.querySelector('.admin-header-actions button[onclick="openProductFormModal()"]');
     
     // Reset all tabs active state
     if (tabCatalogBtn) tabCatalogBtn.classList.remove('active');
     if (tabLeadsBtn) tabLeadsBtn.classList.remove('active');
+    if (tabFounderBtn) tabFounderBtn.classList.remove('active');
+    if (tabCompanyStatsBtn) tabCompanyStatsBtn.classList.remove('active');
     if (tabSettingsBtn) tabSettingsBtn.classList.remove('active');
     
     // Hide all sections
     if (catalogSection) catalogSection.style.display = 'none';
     if (leadsSection) leadsSection.style.display = 'none';
+    if (founderSection) founderSection.style.display = 'none';
+    if (companyStatsSection) companyStatsSection.style.display = 'none';
     if (settingsSection) settingsSection.style.display = 'none';
     
     if (addNewProductBtn) addNewProductBtn.style.display = 'none';
@@ -2165,6 +2242,14 @@ function switchAdminTab(tabName) {
         if (tabLeadsBtn) tabLeadsBtn.classList.add('active');
         if (leadsSection) leadsSection.style.display = 'block';
         renderAdminLeads();
+    } else if (tabName === 'founder') {
+        if (tabFounderBtn) tabFounderBtn.classList.add('active');
+        if (founderSection) founderSection.style.display = 'block';
+        renderFounderInsights();
+    } else if (tabName === 'companyStats') {
+        if (tabCompanyStatsBtn) tabCompanyStatsBtn.classList.add('active');
+        if (companyStatsSection) companyStatsSection.style.display = 'block';
+        switchStatsSubTab('analytics');
     } else if (tabName === 'settings') {
         if (tabSettingsBtn) tabSettingsBtn.classList.add('active');
         if (settingsSection) settingsSection.style.display = 'block';
@@ -2787,9 +2872,14 @@ function editProductModal(docId, id) {
     document.getElementById('prodType').value = product.type || 'regular';
     document.getElementById('prodUnit').value = product.unit;
     document.getElementById('prodBadge').value = product.badge || '';
+    document.getElementById('prodFarmer').value = product.farmerId || getFarmerIdForProduct(id);
 
     const priceNum = parseInt(product.price.replace(/[^\d]/g, ''));
     document.getElementById('prodPrice').value = priceNum;
+    
+    const costPrice = product.costPrice !== undefined ? product.costPrice : Math.round(priceNum * 0.6);
+    document.getElementById('prodCostPrice').value = costPrice;
+    
     document.getElementById('prodImageUrl').value = product.image;
     document.getElementById('prodInStock').checked = product.inStock !== false;
 
@@ -2806,6 +2896,7 @@ function saveProduct(e) {
     const unit = document.getElementById('prodUnit').value;
     const badge = document.getElementById('prodBadge').value;
     const price = parseInt(document.getElementById('prodPrice').value);
+    const costPrice = parseInt(document.getElementById('prodCostPrice').value) || Math.round(price * 0.6);
     
     // Clean and validate GitHub image URLs if inputted
     const rawImageUrl = document.getElementById('prodImageUrl').value;
@@ -2813,6 +2904,7 @@ function saveProduct(e) {
     document.getElementById('prodImageUrl').value = imageUrl;
     
     const inStock = document.getElementById('prodInStock').checked;
+    const farmerId = parseInt(document.getElementById('prodFarmer').value) || getFarmerIdForProduct(idVal ? parseInt(idVal) : 1);
 
     const formattedPrice = `₹${price}`;
 
@@ -2831,8 +2923,10 @@ function saveProduct(e) {
                     badge: badge,
                     price: formattedPrice,
                     pricePerUnit: price,
+                    costPrice: costPrice,
                     image: imageUrl,
-                    inStock: inStock
+                    inStock: inStock,
+                    farmerId: farmerId
                 }).then(() => {
                     closeProductFormModal();
                 }).catch(err => console.error("Firebase dynamic update failed:", err));
@@ -2852,8 +2946,10 @@ function saveProduct(e) {
                 badge: badge,
                 price: formattedPrice,
                 pricePerUnit: price,
+                costPrice: costPrice,
                 image: imageUrl,
-                inStock: inStock
+                inStock: inStock,
+                farmerId: farmerId
             }).then(() => {
                 closeProductFormModal();
             }).catch(err => console.error("Firebase dynamic creation failed:", err));
@@ -2875,8 +2971,10 @@ function saveProduct(e) {
                     badge: badge,
                     price: formattedPrice,
                     pricePerUnit: price,
+                    costPrice: costPrice,
                     image: imageUrl,
-                    inStock: inStock
+                    inStock: inStock,
+                    farmerId: farmerId
                 };
                 saveProductsLocal();
                 closeProductFormModal();
@@ -2894,8 +2992,10 @@ function saveProduct(e) {
                 badge: badge,
                 price: formattedPrice,
                 pricePerUnit: price,
+                costPrice: costPrice,
                 image: imageUrl,
-                inStock: inStock
+                inStock: inStock,
+                farmerId: farmerId
             });
             saveProductsLocal();
             closeProductFormModal();
@@ -3080,6 +3180,877 @@ function initCouponLogic() {
         }
     });
 }
+
+/* ==========================================================================
+   Producer & Founder Insights Dashboard Controller
+   ========================================================================== */
+
+const F_GROWERS = {
+    1: { id: 1, name: "M. Surendhar Reddy", cropIds: [2, 6], avatar: "images/farmer_surendhar.webp", specialty: "Root Vegetables" },
+    2: { id: 2, name: "N. Bhaskar Reddy", cropIds: [1, 5, 7], avatar: "images/farmer_bhaskar.jpg", specialty: "Leafy Greens" },
+    3: { id: 3, name: "P. Raju", cropIds: [3, 4, 8, 9], avatar: "images/farmer_ashok.webp", specialty: "Fruits & Vegetables" }
+};
+let activeFarmerInsightId = 1;
+let platformFeePercent = 8;
+
+function fetchAllLeads() {
+    return new Promise((resolve) => {
+        if (useFirebase && db) {
+            db.collection("leads").orderBy("timestamp", "desc").get()
+                .then((snapshot) => {
+                    const leads = [];
+                    snapshot.forEach(doc => leads.push(doc.data()));
+                    resolve(leads);
+                })
+                .catch(err => {
+                    console.error("Error loading leads from Firestore:", err);
+                    const localLeads = localStorage.getItem('kshetriva_leads');
+                    resolve(localLeads ? JSON.parse(localLeads) : []);
+                });
+        } else {
+            const localLeads = localStorage.getItem('kshetriva_leads');
+            resolve(localLeads ? JSON.parse(localLeads) : []);
+        }
+    });
+}
+
+
+
+function renderFounderInsights() {
+    fetchAllLeads().then((leads) => {
+        let grossSales = 0;
+        let totalOrders = 0;
+        
+        const ordersOnly = leads.filter(l => l.type === 'order');
+        totalOrders = ordersOnly.length;
+        
+        ordersOnly.forEach(o => {
+            grossSales += o.totalAmount || o.totalSum || 0;
+        });
+        
+        // Update Stats UI
+        document.getElementById('founderRevenueVal').textContent = `₹${grossSales}`;
+        document.getElementById('founderOrdersVal').textContent = totalOrders;
+        
+        // Calculate leaderboard and render
+        renderLeaderboard(ordersOnly);
+        
+        // Render Founder Logistics Console list
+        const logContainer = document.getElementById('founderLogisticsList');
+        if (!logContainer) return;
+        logContainer.innerHTML = '';
+        
+        if (ordersOnly.length === 0) {
+            logContainer.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #888; padding: 30px;">
+                        No orders recorded yet.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        ordersOnly.forEach(o => {
+            const tr = document.createElement('tr');
+            
+            const dateStr = new Date(o.timestamp).toLocaleString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            let itemLines = [];
+            if (o.items) {
+                o.items.forEach(item => {
+                    const optText = item.option ? ` (${item.option})` : '';
+                    itemLines.push(`${item.name}${optText} x ${item.qty}`);
+                });
+            }
+            const itemText = itemLines.join(', ') || o.cartSummary || '-';
+            
+            tr.innerHTML = `
+                <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
+                <td>
+                    <div style="font-weight: 600; color: var(--text-dark);">${o.name}</div>
+                    <div style="font-size: 0.78rem; color: #777;">${o.phone} | ${o.area}</div>
+                </td>
+                <td style="font-size: 0.82rem; color: #555; max-width: 250px;">${itemText}</td>
+                <td style="font-weight: 700; color: var(--primary-color);">₹${o.totalAmount || o.totalSum || 0}</td>
+                <td>
+                    <div class="admin-action-btns">
+                        <button class="admin-action-btn edit" onclick="openOrderFormModal('${o.id}')" title="Edit Order"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="admin-action-btn delete" onclick="deleteLead('${o.id}')" title="Delete Order"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </td>
+            `;
+            logContainer.appendChild(tr);
+        });
+    });
+}
+
+function renderLeaderboard(ordersOnly) {
+    const cropSales = {};
+    ordersOnly.forEach(o => {
+        if (o.items) {
+            o.items.forEach(item => {
+                const prod = products.find(p => p.id === item.id);
+                const multiplier = prod ? getOptionMultiplier(prod, item.option, item.price) : 1;
+                const baseQty = item.qty * multiplier;
+                
+                if (!cropSales[item.id]) {
+                    cropSales[item.id] = {
+                        totalQty: 0,
+                        variants: {}
+                    };
+                }
+                
+                cropSales[item.id].totalQty += baseQty;
+                
+                // Track variant details
+                let optLabel = item.option || '';
+                if (prod && item.option) {
+                    const opts = getQuantityOptions(prod);
+                    const optObj = opts.find(o => o.value === item.option || o.label === item.option);
+                    if (optObj) {
+                        optLabel = optObj.label;
+                    }
+                }
+                const optName = optLabel || (prod ? prod.unit : 'unit');
+                cropSales[item.id].variants[optName] = (cropSales[item.id].variants[optName] || 0) + item.qty;
+            });
+        }
+    });
+    
+    const sorted = Object.keys(cropSales)
+        .map(idStr => {
+            const id = parseInt(idStr);
+            const p = products.find(prod => prod.id === id);
+            return {
+                id: id,
+                qty: cropSales[idStr].totalQty,
+                variants: cropSales[idStr].variants,
+                product: p
+            };
+        })
+        .filter(x => x.product !== undefined)
+        .sort((a, b) => b.qty - a.qty);
+        
+    const list = document.getElementById('founderLeaderboardList');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    if (sorted.length === 0) {
+        list.innerHTML = `<div style="text-align: center; color: #888; font-size: 0.85rem; padding: 15px;">No product sales recorded yet.</div>`;
+        return;
+    }
+    
+    sorted.forEach((x, index) => {
+        const row = document.createElement('div');
+        row.className = 'leaderboard-row';
+        
+        const barPct = sorted[0].qty > 0 ? Math.round((x.qty / sorted[0].qty) * 100) : 0;
+        const fillClass = x.product.category === 'root' ? 'fill-roots' : x.product.category === 'leafy' ? 'fill-leafy' : 'fill-fruits';
+        const formattedQty = Math.round(x.qty * 100) / 100;
+        
+        // Build variant breakdown pills
+        const variantParts = [];
+        Object.entries(x.variants).forEach(([opt, count]) => {
+            variantParts.push(`<span style="background: #f0f4f2; color: #555; padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 500; border: 1px solid #e1e8e4;">${opt} × ${count}</span>`);
+        });
+        const variantsHtml = variantParts.length > 0 
+            ? `<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; font-size: 0.8rem;">${variantParts.join('')}</div>`
+            : '';
+            
+        row.innerHTML = `
+            <span class="leaderboard-rank">#${index + 1}</span>
+            <img src="${x.product.image}" alt="${x.product.name}" class="leaderboard-img">
+            <div class="leaderboard-info" style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="leaderboard-name" style="font-weight: 600; color: var(--text-dark);">${x.product.name}</span>
+                    <span class="leaderboard-metric">${formattedQty} ${x.product.unit}</span>
+                </div>
+                <div class="progress-bar-track" style="margin-top: 4px;">
+                    <div class="progress-bar-fill ${fillClass}" style="width: ${barPct}%"></div>
+                </div>
+                ${variantsHtml}
+            </div>
+        `;
+        list.appendChild(row);
+    });
+}
+
+
+
+function modifyLeadOrderStatus(leadId, newStatus) {
+    if (useFirebase && db) {
+        db.collection("leads").doc(leadId).update({
+            status: newStatus
+        }).then(() => {
+            console.log("Order status synced successfully.");
+            refreshActiveTab();
+        }).catch(err => console.error("Firestore order status update failed:", err));
+    } else {
+        const localLeads = localStorage.getItem('kshetriva_leads');
+        if (localLeads) {
+            try {
+                const leads = JSON.parse(localLeads);
+                const leadIndex = leads.findIndex(l => l.id === leadId);
+                if (leadIndex !== -1) {
+                    leads[leadIndex].status = newStatus;
+                    localStorage.setItem('kshetriva_leads', JSON.stringify(leads));
+                    refreshActiveTab();
+                }
+            } catch (e) {
+                console.error("Local leads status change parsing exception:", e);
+            }
+        }
+    }
+}
+
+function openOrderFormModal(leadId) {
+    const titleEl = document.getElementById('orderFormTitle');
+    const idField = document.getElementById('formOrderId');
+    const form = document.getElementById('orderEntryForm');
+    const listCheck = document.getElementById('orderProductsChecklist');
+    
+    idField.value = leadId || '';
+    form.reset();
+    listCheck.innerHTML = '';
+    
+    products.forEach(p => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'order-check-item';
+        
+        const opts = getQuantityOptions(p);
+        let optionsHtml = opts.map(opt => `<option value="${opt.value}" data-price="${opt.price}">${opt.label} (₹${opt.price})</option>`).join('');
+        
+        itemDiv.innerHTML = `
+            <div class="order-check-left">
+                <input type="checkbox" id="chkProd_${p.id}" value="${p.id}" class="chk-order-prod">
+                <label for="chkProd_${p.id}">${p.name}</label>
+            </div>
+            <div class="order-check-right">
+                <select id="selOptProd_${p.id}" class="order-qty-select" disabled>
+                    ${optionsHtml}
+                </select>
+                <input type="number" id="qtyProd_${p.id}" class="order-qty-input" value="1" min="1" disabled style="width: 50px;">
+            </div>
+        `;
+        
+        const chk = itemDiv.querySelector('.chk-order-prod');
+        const sel = itemDiv.querySelector('.order-qty-select');
+        const qty = itemDiv.querySelector('.order-qty-input');
+        
+        chk.addEventListener('change', (e) => {
+            sel.disabled = !e.target.checked;
+            qty.disabled = !e.target.checked;
+        });
+        
+        listCheck.appendChild(itemDiv);
+    });
+    
+    if (leadId) {
+        titleEl.textContent = "Edit Order Details";
+        
+        fetchAllLeads().then((leads) => {
+            const o = leads.find(l => l.id === leadId);
+            if (o) {
+                document.getElementById('ordName').value = o.name || '';
+                document.getElementById('ordPhone').value = o.phone || '';
+                document.getElementById('ordArea').value = o.area || '';
+                document.getElementById('ordStatus').value = o.status || 'harvesting';
+                
+                if (o.items) {
+                    o.items.forEach(item => {
+                        const chk = document.getElementById(`chkProd_${item.id}`);
+                        const sel = document.getElementById(`selOptProd_${item.id}`);
+                        const qty = document.getElementById(`qtyProd_${item.id}`);
+                        
+                        if (chk && sel && qty) {
+                            chk.checked = true;
+                            sel.disabled = false;
+                            qty.disabled = false;
+                            
+                            sel.value = item.option || sel.options[0]?.value;
+                            qty.value = item.qty || 1;
+                        }
+                    });
+                }
+            }
+        });
+    } else {
+        titleEl.textContent = "Create Manual Order";
+    }
+    
+    document.getElementById('orderFormModal').classList.add('open');
+}
+
+function closeOrderFormModal() {
+    document.getElementById('orderFormModal').classList.remove('open');
+}
+
+function saveManualOrder(e) {
+    e.preventDefault();
+    const idVal = document.getElementById('formOrderId').value;
+    const name = document.getElementById('ordName').value.trim();
+    const phone = document.getElementById('ordPhone').value.trim();
+    const area = document.getElementById('ordArea').value.trim();
+    const status = document.getElementById('ordStatus').value;
+    
+    if (!name || !phone || !area) return;
+    
+    let items = [];
+    let subtotal = 0;
+    let itemsCount = 0;
+    
+    const checkboxes = document.querySelectorAll('.chk-order-prod:checked');
+    checkboxes.forEach(chk => {
+        const prodId = parseInt(chk.value);
+        const rawProduct = products.find(p => p.id === prodId);
+        if (rawProduct) {
+            const selOpt = document.getElementById(`selOptProd_${prodId}`);
+            const qtyInput = document.getElementById(`qtyProd_${prodId}`);
+            
+            const selectedOption = selOpt.value;
+            const qty = parseInt(qtyInput.value) || 1;
+            
+            const opts = getQuantityOptions(rawProduct);
+            const optObj = opts.find(o => o.value === selectedOption) || opts[0];
+            const price = optObj ? optObj.price : rawProduct.pricePerUnit;
+            
+            const basePrice = rawProduct.pricePerUnit || parseInt((rawProduct.price || '0').replace(/[^\d]/g, ''));
+            const itemCostPrice = (rawProduct.costPrice !== undefined) ? rawProduct.costPrice : Math.round(basePrice * 0.6);
+            
+            items.push({
+                id: prodId,
+                name: rawProduct.name,
+                qty: qty,
+                option: selectedOption,
+                price: price,
+                total: price * qty,
+                costPrice: itemCostPrice,
+                category: rawProduct.category
+            });
+            
+            subtotal += price * qty;
+            itemsCount += qty;
+        }
+    });
+    
+    const deliveryCharge = 49;
+    const totalAmount = subtotal + deliveryCharge;
+    const cartSummary = `${itemsCount} items, Total: ₹${totalAmount}`;
+    const timestamp = new Date().toISOString();
+    
+    const lead = {
+        id: idVal || Date.now().toString(),
+        name,
+        phone,
+        area,
+        timestamp,
+        type: 'order',
+        cartSummary,
+        items,
+        totalAmount,
+        discountAmount: 0,
+        deliveryCharge,
+        status,
+        coupon: ''
+    };
+    
+    if (useFirebase && db) {
+        db.collection("leads").doc(lead.id).set(lead)
+            .then(() => {
+                console.log("Manual Order saved successfully.");
+                cleanupFirestoreLeads();
+                closeOrderFormModal();
+                refreshActiveTab();
+            })
+            .catch(err => {
+                console.error("Firebase manual order save failed, falling back locally:", err);
+                saveLeadToLocalStorage(lead);
+                closeOrderFormModal();
+                refreshActiveTab();
+            });
+    } else {
+        if (idVal) {
+            let leads = [];
+            const localLeads = localStorage.getItem('kshetriva_leads');
+            if (localLeads) {
+                try {
+                    leads = JSON.parse(localLeads);
+                } catch (ex) {}
+            }
+            const idx = leads.findIndex(l => l.id === idVal);
+            if (idx !== -1) {
+                leads[idx] = lead;
+            } else {
+                leads.unshift(lead);
+            }
+            localStorage.setItem('kshetriva_leads', JSON.stringify(leads));
+        } else {
+            saveLeadToLocalStorage(lead);
+        }
+        closeOrderFormModal();
+        refreshActiveTab();
+    }
+}
+
+function emptyOrderBook() {
+    if (confirm("🚨 WARNING: Are you sure you want to empty the order book? This will delete ALL customer leads and orders permanently!")) {
+        if (useFirebase && db) {
+            db.collection("leads").get().then((snapshot) => {
+                const batch = db.batch();
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                batch.commit().then(() => {
+                    console.log("Firestore order book completely emptied.");
+                    refreshActiveTab();
+                }).catch(err => console.error("Firestore batch empty failed:", err));
+            }).catch(err => console.error("Error fetching leads for emptying:", err));
+        } else {
+            localStorage.removeItem('kshetriva_leads');
+            refreshActiveTab();
+        }
+    }
+}
+
+function refreshActiveTab() {
+    const leadsSec = document.getElementById('adminLeadsSection');
+    const founderSec = document.getElementById('adminFounderSection');
+    const statsSec = document.getElementById('adminCompanyStatsSection');
+    
+    if (leadsSec && leadsSec.style.display === 'block') {
+        renderAdminLeads();
+    } else if (founderSec && founderSec.style.display === 'block') {
+        renderFounderInsights();
+    } else if (statsSec && statsSec.style.display === 'block') {
+        const costSec = document.getElementById('statsCostSubSection');
+        if (costSec && costSec.style.display === 'block') {
+            renderProductCostManagement();
+        } else {
+            renderCompanyAnalytics();
+        }
+    }
+    updateAdminStats();
+}
+
+function switchStatsSubTab(subTab) {
+    const analyticsBtn = document.getElementById('subTabAnalyticsBtn');
+    const costBtn = document.getElementById('subTabCostBtn');
+    const analyticsSec = document.getElementById('statsAnalyticsSubSection');
+    const costSec = document.getElementById('statsCostSubSection');
+    
+    if (!analyticsBtn || !costBtn || !analyticsSec || !costSec) return;
+    
+    if (subTab === 'analytics') {
+        analyticsBtn.classList.add('active-sub-tab');
+        analyticsBtn.style.background = 'var(--primary-color)';
+        analyticsBtn.style.color = 'white';
+        costBtn.classList.remove('active-sub-tab');
+        costBtn.style.background = '#eee';
+        costBtn.style.color = '#555';
+        
+        analyticsSec.style.display = 'block';
+        costSec.style.display = 'none';
+        renderCompanyAnalytics();
+    } else {
+        costBtn.classList.add('active-sub-tab');
+        costBtn.style.background = 'var(--primary-color)';
+        costBtn.style.color = 'white';
+        analyticsBtn.classList.remove('active-sub-tab');
+        analyticsBtn.style.background = '#eee';
+        analyticsBtn.style.color = '#555';
+        
+        analyticsSec.style.display = 'none';
+        costSec.style.display = 'block';
+        renderProductCostManagement();
+    }
+}
+
+function getWeekRangeString(dateString) {
+    const d = new Date(dateString);
+    const day = d.getDay(); // 0 is Sunday, 1 is Monday...
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    const monday = new Date(d.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    
+    const format = (dt) => dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    return `${format(monday)} - ${format(sunday)}`;
+}
+
+function getOptionMultiplier(product, optionStr, itemPrice) {
+    const opts = getQuantityOptions(product);
+    if (optionStr) {
+        const match = opts.find(o => 
+            o.value === optionStr || 
+            o.label === optionStr || 
+            o.label.toLowerCase().includes(optionStr.toLowerCase()) || 
+            optionStr.toLowerCase().includes(o.label.toLowerCase())
+        );
+        if (match) return match.multiplier || 1;
+    }
+    
+    // Fallback: If optionStr is empty/missing, check if itemPrice matches any option price
+    if (itemPrice) {
+        const matchByPrice = opts.find(o => o.price === itemPrice);
+        if (matchByPrice) return matchByPrice.multiplier || 1;
+        
+        // Secondary fallback: approximate multiplier as itemPrice / basePrice
+        const basePrice = product.pricePerUnit || parseInt((product.price || '0').replace(/[^\d]/g, ''));
+        if (basePrice > 0) {
+            return itemPrice / basePrice;
+        }
+    }
+    
+    return 1;
+}
+
+function renderCompanyAnalytics() {
+    fetchAllLeads().then((leads) => {
+        const ordersOnly = leads.filter(l => l.type === 'order');
+        
+        // Group orders by week
+        const weeks = {};
+        
+        ordersOnly.forEach(o => {
+            const weekStr = getWeekRangeString(o.timestamp);
+            if (!weeks[weekStr]) {
+                weeks[weekStr] = {
+                    weekStr: weekStr,
+                    orders: [],
+                    grossSales: 0,
+                    expenses: 0,
+                    totalDiscount: 0,
+                    totalDeliveryCharge: 0,
+                    products: {}
+                };
+            }
+            
+            weeks[weekStr].orders.push(o);
+            weeks[weekStr].grossSales += o.totalAmount || o.totalSum || 0;
+            weeks[weekStr].totalDiscount += o.discountAmount || 0;
+            weeks[weekStr].totalDeliveryCharge += o.deliveryCharge || 0;
+            
+            if (o.items) {
+                o.items.forEach(item => {
+                    const prod = products.find(p => p.id === item.id);
+                    let baseCostPrice = 0;
+                    let multiplier = 1;
+                    let itemExpense = 0;
+                    
+                    const currentWeekStr = getWeekRangeString(new Date().toISOString());
+                    const isPreviousWeek = weekStr !== currentWeekStr;
+                    
+                    if (prod) {
+                        multiplier = getOptionMultiplier(prod, item.option, item.price);
+                        if (item.costPrice !== undefined) {
+                            baseCostPrice = item.costPrice;
+                        } else if (isPreviousWeek) {
+                            // Previous weeks are locked; fallback to 60% of base selling price
+                            const basePrice = prod.pricePerUnit || parseInt((prod.price || '0').replace(/[^\d]/g, ''));
+                            baseCostPrice = Math.round(basePrice * 0.6);
+                        } else if (prod.costPrice !== undefined) {
+                            // Present week: use catalog costPrice if available
+                            baseCostPrice = prod.costPrice;
+                        } else {
+                            const basePrice = prod.pricePerUnit || parseInt((prod.price || '0').replace(/[^\d]/g, ''));
+                            baseCostPrice = Math.round(basePrice * 0.6);
+                        }
+                        itemExpense = Math.round(baseCostPrice * multiplier * item.qty);
+                    } else {
+                        if (item.costPrice !== undefined) {
+                            baseCostPrice = item.costPrice;
+                        } else if (item.price) {
+                            baseCostPrice = Math.round(item.price * 0.6);
+                        }
+                        itemExpense = Math.round(baseCostPrice * item.qty);
+                    }
+                    
+                    weeks[weekStr].expenses += itemExpense;
+                    
+                    if (!weeks[weekStr].products[item.id]) {
+                        weeks[weekStr].products[item.id] = {
+                            id: item.id,
+                            name: item.name,
+                            qty: 0,
+                            unit: prod ? prod.unit : 'unit',
+                            price: prod ? (prod.pricePerUnit || parseInt((prod.price || '0').replace(/[^\d]/g, ''))) : item.price,
+                            costPrice: baseCostPrice,
+                            totalSales: 0,
+                            totalExpense: 0
+                        };
+                    }
+                    
+                    weeks[weekStr].products[item.id].qty += (item.qty * multiplier);
+                    weeks[weekStr].products[item.id].totalSales += item.total || (item.price * item.qty);
+                    weeks[weekStr].products[item.id].totalExpense += itemExpense;
+                });
+            }
+        });
+        
+        // Calculate All-Time stats
+        let allTimeSales = 0;
+        let allTimeExpense = 0;
+        
+        Object.values(weeks).forEach(w => {
+            allTimeSales += w.grossSales;
+            allTimeExpense += w.expenses;
+        });
+        
+        const allTimeProfit = allTimeSales - allTimeExpense;
+        
+        document.getElementById('statsAllTimeSales').textContent = `₹${allTimeSales}`;
+        document.getElementById('statsAllTimeExpense').textContent = `₹${allTimeExpense}`;
+        
+        const profitEl = document.getElementById('statsAllTimeProfit');
+        profitEl.textContent = `₹${Math.abs(allTimeProfit)}`;
+        if (allTimeProfit >= 0) {
+            profitEl.style.color = 'var(--primary-color)';
+            profitEl.parentElement.querySelector('.stat-label').textContent = 'All-Time Profit';
+        } else {
+            profitEl.style.color = '#d32f2f';
+            profitEl.parentElement.querySelector('.stat-label').textContent = 'All-Time Loss';
+        }
+        
+        // Render week-wise table
+        const tbody = document.getElementById('statsWeekBreakdownList');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        const sortedWeekKeys = Object.keys(weeks).sort((a, b) => {
+            const parseDate = (wStr) => {
+                const parts = wStr.split(' - ');
+                return new Date(parts[0] + `, ${new Date().getFullYear()}`);
+            };
+            return parseDate(b) - parseDate(a);
+        });
+        
+        if (sortedWeekKeys.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #888; padding: 20px;">
+                        No orders recorded yet.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        window.statsWeeksData = weeks;
+        
+        sortedWeekKeys.forEach(wKey => {
+            const w = weeks[wKey];
+            const tr = document.createElement('tr');
+            const profit = w.grossSales - w.expenses;
+            const profitStyle = profit >= 0 ? 'color: var(--primary-color); font-weight: 700;' : 'color: #d32f2f; font-weight: 700;';
+            const profitLabel = profit >= 0 ? `₹${profit}` : `-₹${Math.abs(profit)}`;
+            
+            tr.innerHTML = `
+                <td style="font-weight: 600; color: var(--text-dark);">${w.weekStr}</td>
+                <td>${w.orders.length}</td>
+                <td><strong>₹${w.grossSales}</strong></td>
+                <td>₹${w.expenses}</td>
+                <td style="${profitStyle}">${profitLabel}</td>
+                <td>
+                    <button class="btn btn-secondary" onclick="viewWeekDetails('${wKey}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> View Details
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+}
+
+function viewWeekDetails(weekKey) {
+    const container = document.getElementById('weekDetailsContainer');
+    const title = document.getElementById('weekDetailsTitle');
+    const tbody = document.getElementById('weekDetailsProductsList');
+    
+    if (!container || !title || !tbody || !window.statsWeeksData) return;
+    
+    const wData = window.statsWeeksData[weekKey];
+    if (!wData) return;
+    
+    title.textContent = `Product Sales & Profits Breakdown: Week of ${weekKey}`;
+    tbody.innerHTML = '';
+    
+    const pKeys = Object.keys(wData.products);
+    if (pKeys.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; color: #888; padding: 20px;">
+                    No products sold in this week.
+                </td>
+            </tr>
+        `;
+        container.style.display = 'block';
+        container.scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
+    
+    pKeys.forEach(pId => {
+        const pObj = wData.products[pId];
+        const prod = products.find(p => p.id === parseInt(pId));
+        
+        let displayName = pObj.name;
+        let displayUnit = pObj.unit;
+        if (prod) {
+            const translatedProd = getTranslatedProduct(prod);
+            displayName = translatedProd.name;
+            displayUnit = translatedProd.unit;
+        }
+        
+        const tr = document.createElement('tr');
+        
+        const netProfit = pObj.totalSales - pObj.totalExpense;
+        const profitStyle = netProfit >= 0 ? 'color: var(--primary-color); font-weight: 600;' : 'color: #d32f2f; font-weight: 600;';
+        const profitLabel = netProfit >= 0 ? `₹${netProfit}` : `-₹${Math.abs(netProfit)}`;
+        const formattedQty = Math.round(pObj.qty * 100) / 100;
+        
+        tr.innerHTML = `
+            <td style="font-weight: 600; color: var(--text-dark);">${displayName}</td>
+            <td>${formattedQty} ${displayUnit}</td>
+            <td>₹${pObj.price}</td>
+            <td>₹${pObj.costPrice}</td>
+            <td><strong>₹${pObj.totalSales}</strong></td>
+            <td>₹${pObj.totalExpense}</td>
+            <td style="${profitStyle}">${profitLabel}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    // Calculate and render weekly summary cards
+    let pSales = 0;
+    let pExpenses = 0;
+    Object.values(wData.products).forEach(prod => {
+        pSales += prod.totalSales;
+        pExpenses += prod.totalExpense;
+    });
+    const totalDiscount = wData.totalDiscount || 0;
+    const totalDeliveryCharge = wData.totalDeliveryCharge || 0;
+    const netProfit = wData.grossSales - wData.expenses;
+    
+    const summaryContainer = document.getElementById('weekDetailsSummary');
+    if (summaryContainer) {
+        const netProfitStyle = netProfit >= 0 ? 'color: var(--primary-color); font-weight: 700;' : 'color: #d32f2f; font-weight: 700;';
+        const netProfitLabel = netProfit >= 0 ? `₹${netProfit}` : `-₹${Math.abs(netProfit)}`;
+        
+        summaryContainer.innerHTML = `
+            <div style="text-align: center; border-right: 1px solid #eee; padding: 10px;">
+                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: 600;">Products Subtotal</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-top: 5px;">₹${pSales}</div>
+            </div>
+            <div style="text-align: center; border-right: 1px solid #eee; padding: 10px;">
+                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: 600;">Product Expenses</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-top: 5px;">₹${pExpenses}</div>
+            </div>
+            <div style="text-align: center; border-right: 1px solid #eee; padding: 10px;">
+                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: 600;">Total Discounts</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #d32f2f; margin-top: 5px;">-₹${totalDiscount}</div>
+            </div>
+            <div style="text-align: center; border-right: 1px solid #eee; padding: 10px;">
+                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: 600;">Delivery Charges</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-top: 5px;">+₹${totalDeliveryCharge}</div>
+            </div>
+            <div style="text-align: center; padding: 10px;">
+                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: 600;">Weekly Net Profit</div>
+                <div style="font-size: 1.15rem; margin-top: 5px; ${netProfitStyle}">${netProfitLabel}</div>
+            </div>
+        `;
+    }
+    
+    container.style.display = 'block';
+    container.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeWeekDetails() {
+    const container = document.getElementById('weekDetailsContainer');
+    if (container) container.style.display = 'none';
+}
+
+function renderProductCostManagement() {
+    const list = document.getElementById('statsCostManagementList');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    products.forEach(p => {
+        const tr = document.createElement('tr');
+        const costPrice = p.costPrice !== undefined ? p.costPrice : Math.round(p.pricePerUnit * 0.6);
+        
+        tr.innerHTML = `
+            <td><img src="${p.image}" alt="${p.name}" class="admin-table-img" width="40" height="40"></td>
+            <td>
+                <div class="admin-table-title">${p.name}</div>
+                <div class="admin-table-subtitle">ID: ${p.id} | ${p.category}</div>
+            </td>
+            <td>${p.unit}</td>
+            <td><strong>${p.price}</strong> (${p.pricePerUnit})</td>
+            <td>
+                <input type="number" id="inputCost_${p.id}" value="${costPrice}" min="0" class="order-qty-input" style="width: 80px; padding: 6px;">
+            </td>
+            <td>
+                <button class="btn btn-primary" onclick="saveProductCostPrice(this, '${p.docId || ''}', ${p.id})" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px; transition: all 0.2s ease;">
+                    <i class="fa-solid fa-check"></i> Save
+                </button>
+            </td>
+        `;
+        list.appendChild(tr);
+    });
+}
+
+function saveProductCostPrice(btnEl, docId, id) {
+    const input = document.getElementById(`inputCost_${id}`);
+    if (!input) return;
+    const costVal = parseInt(input.value) || 0;
+    
+    const showTemporarySuccess = () => {
+        if (btnEl) {
+            const originalContent = btnEl.innerHTML;
+            btnEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Saved`;
+            btnEl.style.backgroundColor = "#2e7d32";
+            btnEl.style.borderColor = "#2e7d32";
+            btnEl.disabled = true;
+            setTimeout(() => {
+                btnEl.innerHTML = originalContent;
+                btnEl.style.backgroundColor = "";
+                btnEl.style.borderColor = "";
+                btnEl.disabled = false;
+            }, 1500);
+        }
+    };
+    
+    if (useFirebase && db && docId) {
+        db.collection("products").doc(docId).update({
+            costPrice: costVal
+        }).then(() => {
+            console.log(`Cost price for product ID ${id} saved to Firestore: ₹${costVal}`);
+            const product = products.find(p => p.id === id);
+            if (product) product.costPrice = costVal;
+            showTemporarySuccess();
+        }).catch(err => {
+            console.error("Firestore product cost update error:", err);
+            alert("Failed to save to dynamic database.");
+        });
+    } else {
+        const product = products.find(p => p.id === id);
+        if (product) {
+            product.costPrice = costVal;
+            saveProductsLocal();
+            showTemporarySuccess();
+        }
+    }
+}
+
+
 
 /* ==========================================================================
    Application Boot Initialization

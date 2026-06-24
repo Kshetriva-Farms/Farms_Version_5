@@ -3042,4 +3042,195 @@ footer {
   background-color: rgba(211, 47, 47, 0.1);
   color: #d32f2f;
   border: 1px solid rgba(211, 47, 47, 0.2);
+}
+
+/* ==========================================================================
+   Producer & Founder Insights Dashboard Styling
+   ========================================================================== */
+
+#adminProducerSection, #adminFounderSection {
+  animation: fadeIn 0.3s ease-out;
+}
+
+
+
+/* Leaderboard */
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f9f9f9;
+  width: 100%;
+}
+
+.leaderboard-row:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-rank {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1rem;
+  width: 25px;
+}
+
+.leaderboard-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.leaderboard-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.leaderboard-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  text-align: left;
+}
+
+.leaderboard-metric {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  font-weight: 700;
+}
+
+.progress-bar-track {
+  background: #f0f0f0;
+  height: 6px;
+  border-radius: 3px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.progress-bar-fill.fill-roots {
+  background: #efebe9;
+  border-right: 2px solid #5d4037;
+}
+
+.progress-bar-fill.fill-leafy {
+  background: #e8f5e9;
+  border-right: 2px solid #2e7d32;
+}
+
+.progress-bar-fill.fill-fruits {
+  background: #fce4ec;
+  border-right: 2px solid #c2185b;
+}
+
+
+
+/* Order selection checklist */
+.order-check-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.order-check-item:last-child {
+  border-bottom: none;
+}
+
+.order-check-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+}
+
+.order-check-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.order-qty-select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 0.8rem;
+  width: 90px;
+}
+
+.order-qty-input {
+  padding: 4px 6px;
+  width: 50px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* Order item farmer label */
+.order-item-farmer {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-style: italic;
+  margin-left: 5px;
+}
+
+.lead-badge.order {
+  background-color: rgba(46, 125, 50, 0.1) !important;
+  color: var(--primary-color) !important;
+}
+
+.lead-badge.chat {
+  background-color: rgba(2, 136, 209, 0.1) !important;
+  color: #0288d1 !important;
+}
+
+/* Order status indicators in logistics table and producer list */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.status-badge.harvesting {
+  background-color: #efebe9;
+  color: #5d4037;
+}
+
+.status-badge.packed {
+  background-color: #ffe0b2;
+  color: #f57c00;
+}
+
+.status-badge.delivery {
+  background-color: #e1f5fe;
+  color: #0288d1;
+}
+
+.status-badge.delivered {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Company stats sub-tabs active highlight styling */
+.active-sub-tab {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+
+.stats-sub-tabs button {
+  transition: var(--transition);
 }
