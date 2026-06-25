@@ -207,14 +207,20 @@ let products = [
 
 // Initialize Firebase dynamically
 try {
-    if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+    if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "YOUR_API_KEY" && !isLocalhost) {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
         auth = firebase.auth();
         useFirebase = true;
         console.log("🌾 Kshetriva Farms: Live Firebase Backend Connected successfully.");
     } else {
-        console.log("🌾 Kshetriva Farms: Running in Local Fallback Database mode. Setup Firebase credentials to sync live online.");
+        useFirebase = false;
+        if (isLocalhost) {
+            console.log("⚠️ Running on localhost. Firestore connections disabled to protect production data. Using offline LocalStorage fallback.");
+        } else {
+            console.log("🌾 Kshetriva Farms: Running in Local Fallback Database mode. Setup Firebase credentials to sync live online.");
+        }
         // Load offline client catalog from LocalStorage if present
         const offlineCatalog = localStorage.getItem('kshetriva_catalog');
         if (offlineCatalog) {
@@ -231,6 +237,19 @@ try {
     }
 } catch (e) {
     console.error("🌾 Kshetriva Farms: Backend connection exception:", e);
+}
+
+// Temporary utility to clear local testing leads via URL parameter
+try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('clearLocalLeads') === 'true') {
+        localStorage.removeItem('kshetriva_leads');
+        console.log("🧹 Kshetriva Farms: Local testing leads cleared successfully.");
+        const newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+} catch (err) {
+    console.error("Failed to clear local leads:", err);
 }
 
 const productGrid = document.getElementById('productGrid');
@@ -2296,6 +2315,16 @@ function renderAdminLeads() {
             const badgeClass = lead.type === 'order' ? 'order' : 'chat';
             const badgeLabel = lead.type === 'order' ? 'Order' : 'Chat';
             
+            const isLocked = isLeadLocked(lead, leadsList);
+            const deleteBtnHtml = isLocked
+                ? `<button class="admin-action-btn delete" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #eee; border-color: #ddd; color: #aaa;" title="Locked (Completed Week)"><i class="fa-solid fa-lock"></i></button>`
+                : `<button class="admin-action-btn delete" onclick="deleteLead('${lead.id}')" title="Delete Lead"><i class="fa-solid fa-trash-can"></i></button>`;
+            
+            if (isLocked) {
+                tr.style.opacity = '0.85';
+                tr.style.backgroundColor = '#fafafa';
+            }
+            
             tr.innerHTML = `
                 <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
                 <td style="font-weight: 600; color: var(--text-dark);">${lead.name}</td>
@@ -2309,7 +2338,7 @@ function renderAdminLeads() {
                     <div class="lead-cart-summary">${lead.cartSummary || '-'}</div>
                 </td>
                 <td>
-                    <button class="admin-action-btn delete" onclick="deleteLead('${lead.id}')" title="Delete Lead"><i class="fa-solid fa-trash-can"></i></button>
+                    ${deleteBtnHtml}
                 </td>
             `;
             listContainer.appendChild(tr);
@@ -2340,29 +2369,36 @@ function renderAdminLeads() {
 
 // Delete individual lead
 function deleteLead(leadId) {
-    if (confirm("Are you sure you want to delete this customer lead?")) {
-        if (useFirebase && db) {
-            db.collection("leads").doc(leadId).delete()
-                .then(() => {
-                    console.log("Lead deleted from Firestore.");
-                    renderAdminLeads();
-                    updateAdminStats();
-                })
-                .catch(err => console.error("Error deleting lead from Firestore:", err));
-        } else {
-            let leads = [];
-            const localLeads = localStorage.getItem('kshetriva_leads');
-            if (localLeads) {
-                try {
-                    leads = JSON.parse(localLeads);
-                } catch (e) {}
-            }
-            leads = leads.filter(l => l.id !== leadId);
-            localStorage.setItem('kshetriva_leads', JSON.stringify(leads));
-            renderAdminLeads();
-            updateAdminStats();
+    fetchAllLeads().then((leads) => {
+        const lead = leads.find(l => l.id === leadId);
+        if (lead && isLeadLocked(lead, leads)) {
+            alert("🔒 This week's orders are completed and locked. You cannot delete this lead.");
+            return;
         }
-    }
+        if (confirm("Are you sure you want to delete this customer lead?")) {
+            if (useFirebase && db) {
+                db.collection("leads").doc(leadId).delete()
+                    .then(() => {
+                        console.log("Lead deleted from Firestore.");
+                        renderAdminLeads();
+                        updateAdminStats();
+                    })
+                    .catch(err => console.error("Error deleting lead from Firestore:", err));
+            } else {
+                let localLeads = [];
+                const storedLeads = localStorage.getItem('kshetriva_leads');
+                if (storedLeads) {
+                    try {
+                        localLeads = JSON.parse(storedLeads);
+                    } catch (e) {}
+                }
+                localLeads = localLeads.filter(l => l.id !== leadId);
+                localStorage.setItem('kshetriva_leads', JSON.stringify(localLeads));
+                renderAdminLeads();
+                updateAdminStats();
+            }
+        }
+    });
 }
 
 // ===== System Settings and Manual Ordering Window Overrides =====
@@ -2657,6 +2693,14 @@ function isAdminLoggedIn() {
 function openAdminLogin() {
     document.getElementById('adminLoginModal').classList.add('open');
     document.getElementById('adminDashboardOverlay').classList.remove('open');
+    
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+    if (isLocalhost) {
+        const emailEl = document.getElementById('adminEmail');
+        const passEl = document.getElementById('adminPassword');
+        if (emailEl) emailEl.value = 'admin@kshetrivafarms.com';
+        if (passEl) passEl.value = 'admin123';
+    }
 }
 
 function closeAdminLogin() {
@@ -3232,8 +3276,10 @@ function renderFounderInsights() {
         document.getElementById('founderRevenueVal').textContent = `₹${grossSales}`;
         document.getElementById('founderOrdersVal').textContent = totalOrders;
         
-        // Calculate leaderboard and render
-        renderLeaderboard(ordersOnly);
+        // Calculate leaderboard for present week only
+        const currentWeekStr = getWeekRangeString(new Date().toISOString());
+        const presentWeekOrders = ordersOnly.filter(o => getWeekRangeString(o.timestamp) === currentWeekStr);
+        renderLeaderboard(presentWeekOrders);
         
         // Render Founder Logistics Console list
         const logContainer = document.getElementById('founderLogisticsList');
@@ -3270,6 +3316,22 @@ function renderFounderInsights() {
             }
             const itemText = itemLines.join(', ') || o.cartSummary || '-';
             
+            const isLocked = isLeadLocked(o, leads);
+            const actionsHtml = isLocked
+                ? `<div class="admin-action-btns">
+                        <button class="admin-action-btn edit" onclick="openOrderFormModal('${o.id}')" title="Edit Order Details"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="admin-action-btn delete" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #eee; border-color: #ddd; color: #aaa;" title="Locked (Completed Week)"><i class="fa-solid fa-lock"></i></button>
+                   </div>`
+                : `<div class="admin-action-btns">
+                        <button class="admin-action-btn edit" onclick="openOrderFormModal('${o.id}')" title="Edit Order Details"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="admin-action-btn delete" onclick="deleteLead('${o.id}')" title="Delete Order"><i class="fa-solid fa-trash-can"></i></button>
+                   </div>`;
+            
+            if (isLocked) {
+                tr.style.opacity = '0.85';
+                tr.style.backgroundColor = '#fafafa';
+            }
+            
             tr.innerHTML = `
                 <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
                 <td>
@@ -3279,10 +3341,7 @@ function renderFounderInsights() {
                 <td style="font-size: 0.82rem; color: #555; max-width: 250px;">${itemText}</td>
                 <td style="font-weight: 700; color: var(--primary-color);">₹${o.totalAmount || o.totalSum || 0}</td>
                 <td>
-                    <div class="admin-action-btns">
-                        <button class="admin-action-btn edit" onclick="openOrderFormModal('${o.id}')" title="Edit Order"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button class="admin-action-btn delete" onclick="deleteLead('${o.id}')" title="Delete Order"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
+                    ${actionsHtml}
                 </td>
             `;
             logContainer.appendChild(tr);
@@ -3395,11 +3454,11 @@ function modifyLeadOrderStatus(leadId, newStatus) {
         const localLeads = localStorage.getItem('kshetriva_leads');
         if (localLeads) {
             try {
-                const leads = JSON.parse(localLeads);
-                const leadIndex = leads.findIndex(l => l.id === leadId);
+                const leadsList = JSON.parse(localLeads);
+                const leadIndex = leadsList.findIndex(l => l.id === leadId);
                 if (leadIndex !== -1) {
-                    leads[leadIndex].status = newStatus;
-                    localStorage.setItem('kshetriva_leads', JSON.stringify(leads));
+                    leadsList[leadIndex].status = newStatus;
+                    localStorage.setItem('kshetriva_leads', JSON.stringify(leadsList));
                     refreshActiveTab();
                 }
             } catch (e) {
@@ -3415,76 +3474,92 @@ function openOrderFormModal(leadId) {
     const form = document.getElementById('orderEntryForm');
     const listCheck = document.getElementById('orderProductsChecklist');
     
-    idField.value = leadId || '';
-    form.reset();
-    listCheck.innerHTML = '';
-    
-    products.forEach(p => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'order-check-item';
+    const initializeForm = () => {
+        idField.value = leadId || '';
+        form.reset();
+        listCheck.innerHTML = '';
         
-        const opts = getQuantityOptions(p);
-        let optionsHtml = opts.map(opt => `<option value="${opt.value}" data-price="${opt.price}">${opt.label} (₹${opt.price})</option>`).join('');
-        
-        itemDiv.innerHTML = `
-            <div class="order-check-left">
-                <input type="checkbox" id="chkProd_${p.id}" value="${p.id}" class="chk-order-prod">
-                <label for="chkProd_${p.id}">${p.name}</label>
-            </div>
-            <div class="order-check-right">
-                <select id="selOptProd_${p.id}" class="order-qty-select" disabled>
-                    ${optionsHtml}
-                </select>
-                <input type="number" id="qtyProd_${p.id}" class="order-qty-input" value="1" min="1" disabled style="width: 50px;">
-            </div>
-        `;
-        
-        const chk = itemDiv.querySelector('.chk-order-prod');
-        const sel = itemDiv.querySelector('.order-qty-select');
-        const qty = itemDiv.querySelector('.order-qty-input');
-        
-        chk.addEventListener('change', (e) => {
-            sel.disabled = !e.target.checked;
-            qty.disabled = !e.target.checked;
+        products.forEach(p => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'order-check-item';
+            
+            const opts = getQuantityOptions(p);
+            let optionsHtml = opts.map(opt => `<option value="${opt.value}" data-price="${opt.price}">${opt.label} (₹${opt.price})</option>`).join('');
+            
+            itemDiv.innerHTML = `
+                <div class="order-check-left">
+                    <input type="checkbox" id="chkProd_${p.id}" value="${p.id}" class="chk-order-prod">
+                    <label for="chkProd_${p.id}">${p.name}</label>
+                </div>
+                <div class="order-check-right">
+                    <select id="selOptProd_${p.id}" class="order-qty-select" disabled>
+                        ${optionsHtml}
+                    </select>
+                    <input type="number" id="qtyProd_${p.id}" class="order-qty-input" value="1" min="1" disabled style="width: 50px;">
+                </div>
+            `;
+            
+            const chk = itemDiv.querySelector('.chk-order-prod');
+            const sel = itemDiv.querySelector('.order-qty-select');
+            const qty = itemDiv.querySelector('.order-qty-input');
+            
+            chk.addEventListener('change', (e) => {
+                sel.disabled = !e.target.checked;
+                qty.disabled = !e.target.checked;
+            });
+            
+            listCheck.appendChild(itemDiv);
         });
         
-        listCheck.appendChild(itemDiv);
-    });
-    
-    if (leadId) {
-        titleEl.textContent = "Edit Order Details";
-        
-        fetchAllLeads().then((leads) => {
-            const o = leads.find(l => l.id === leadId);
-            if (o) {
-                document.getElementById('ordName').value = o.name || '';
-                document.getElementById('ordPhone').value = o.phone || '';
-                document.getElementById('ordArea').value = o.area || '';
-                document.getElementById('ordStatus').value = o.status || 'harvesting';
-                
-                if (o.items) {
-                    o.items.forEach(item => {
-                        const chk = document.getElementById(`chkProd_${item.id}`);
-                        const sel = document.getElementById(`selOptProd_${item.id}`);
-                        const qty = document.getElementById(`qtyProd_${item.id}`);
-                        
-                        if (chk && sel && qty) {
-                            chk.checked = true;
-                            sel.disabled = false;
-                            qty.disabled = false;
+        if (leadId) {
+            titleEl.textContent = "Edit Order Details";
+            
+            fetchAllLeads().then((leads) => {
+                const o = leads.find(l => l.id === leadId);
+                if (o) {
+                    document.getElementById('ordName').value = o.name || '';
+                    document.getElementById('ordPhone').value = o.phone || '';
+                    document.getElementById('ordArea').value = o.area || '';
+                    document.getElementById('ordStatus').value = o.status || 'harvesting';
+                    document.getElementById('ordDeliveryCharge').value = o.deliveryCharge !== undefined ? o.deliveryCharge : 49;
+                    
+                    if (o.timestamp) {
+                        const orderDate = new Date(o.timestamp);
+                        const offset = orderDate.getTimezoneOffset() * 60000;
+                        const localISOTime = (new Date(orderDate - offset)).toISOString().slice(0, 16);
+                        document.getElementById('ordDate').value = localISOTime;
+                    }
+                    
+                    if (o.items) {
+                        o.items.forEach(item => {
+                            const chk = document.getElementById(`chkProd_${item.id}`);
+                            const sel = document.getElementById(`selOptProd_${item.id}`);
+                            const qty = document.getElementById(`qtyProd_${item.id}`);
                             
-                            sel.value = item.option || sel.options[0]?.value;
-                            qty.value = item.qty || 1;
-                        }
-                    });
+                            if (chk && sel && qty) {
+                                chk.checked = true;
+                                sel.disabled = false;
+                                qty.disabled = false;
+                                
+                                sel.value = item.option || sel.options[0]?.value;
+                                qty.value = item.qty || 1;
+                            }
+                        });
+                    }
                 }
-            }
-        });
-    } else {
-        titleEl.textContent = "Create Manual Order";
-    }
-    
-    document.getElementById('orderFormModal').classList.add('open');
+            });
+        } else {
+            titleEl.textContent = "Create Manual Order";
+            const now = new Date();
+            const offset = now.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(now - offset)).toISOString().slice(0, 16);
+            document.getElementById('ordDate').value = localISOTime;
+        }
+        
+        document.getElementById('orderFormModal').classList.add('open');
+    };
+
+    initializeForm();
 }
 
 function closeOrderFormModal() {
@@ -3500,6 +3575,9 @@ function saveManualOrder(e) {
     const status = document.getElementById('ordStatus').value;
     
     if (!name || !phone || !area) return;
+    
+    const dateInputVal = document.getElementById('ordDate').value;
+    const timestamp = dateInputVal ? new Date(dateInputVal).toISOString() : new Date().toISOString();
     
     let items = [];
     let subtotal = 0;
@@ -3539,10 +3617,9 @@ function saveManualOrder(e) {
         }
     });
     
-    const deliveryCharge = 49;
-    const totalAmount = subtotal + deliveryCharge;
+    const deliveryChargeVal = parseInt(document.getElementById('ordDeliveryCharge').value) || 0;
+    const totalAmount = subtotal + deliveryChargeVal;
     const cartSummary = `${itemsCount} items, Total: ₹${totalAmount}`;
-    const timestamp = new Date().toISOString();
     
     const lead = {
         id: idVal || Date.now().toString(),
@@ -3555,7 +3632,7 @@ function saveManualOrder(e) {
         items,
         totalAmount,
         discountAmount: 0,
-        deliveryCharge,
+        deliveryCharge: deliveryChargeVal,
         status,
         coupon: ''
     };
@@ -3576,20 +3653,20 @@ function saveManualOrder(e) {
             });
     } else {
         if (idVal) {
-            let leads = [];
-            const localLeads = localStorage.getItem('kshetriva_leads');
-            if (localLeads) {
+            let localLeads = [];
+            const storedLeads = localStorage.getItem('kshetriva_leads');
+            if (storedLeads) {
                 try {
-                    leads = JSON.parse(localLeads);
+                    localLeads = JSON.parse(storedLeads);
                 } catch (ex) {}
             }
-            const idx = leads.findIndex(l => l.id === idVal);
+            const idx = localLeads.findIndex(l => l.id === idVal);
             if (idx !== -1) {
-                leads[idx] = lead;
+                localLeads[idx] = lead;
             } else {
-                leads.unshift(lead);
+                localLeads.unshift(lead);
             }
-            localStorage.setItem('kshetriva_leads', JSON.stringify(leads));
+            localStorage.setItem('kshetriva_leads', JSON.stringify(localLeads));
         } else {
             saveLeadToLocalStorage(lead);
         }
@@ -3598,24 +3675,47 @@ function saveManualOrder(e) {
     }
 }
 
-function emptyOrderBook() {
-    if (confirm("🚨 WARNING: Are you sure you want to empty the order book? This will delete ALL customer leads and orders permanently!")) {
-        if (useFirebase && db) {
-            db.collection("leads").get().then((snapshot) => {
+function clearWeekOrders(weekStr) {
+    if (confirm(`🚨 WARNING: Are you sure you want to clear all leads and orders for week: ${weekStr}? This action is permanent!`)) {
+        fetchAllLeads().then((leads) => {
+            if (isWeekLocked(weekStr, leads)) {
+                alert("🔒 This week's orders are completed and locked. You cannot clear this week.");
+                return;
+            }
+            const leadsToDelete = leads.filter(l => getWeekRangeString(l.timestamp) === weekStr);
+            if (leadsToDelete.length === 0) {
+                alert("No orders or leads found for this week.");
+                return;
+            }
+            
+            if (useFirebase && db) {
                 const batch = db.batch();
-                snapshot.forEach(doc => {
-                    batch.delete(doc.ref);
+                leadsToDelete.forEach(l => {
+                    batch.delete(db.collection("leads").doc(l.id));
                 });
                 batch.commit().then(() => {
-                    console.log("Firestore order book completely emptied.");
+                    console.log(`Firestore week ${weekStr} completely cleared.`);
                     refreshActiveTab();
-                }).catch(err => console.error("Firestore batch empty failed:", err));
-            }).catch(err => console.error("Error fetching leads for emptying:", err));
-        } else {
-            localStorage.removeItem('kshetriva_leads');
-            refreshActiveTab();
-        }
+                }).catch(err => console.error("Firestore batch delete week failed:", err));
+            } else {
+                let allLeads = [];
+                const localLeads = localStorage.getItem('kshetriva_leads');
+                if (localLeads) {
+                    try {
+                        allLeads = JSON.parse(localLeads);
+                    } catch (e) {}
+                }
+                allLeads = allLeads.filter(l => getWeekRangeString(l.timestamp) !== weekStr);
+                localStorage.setItem('kshetriva_leads', JSON.stringify(allLeads));
+                refreshActiveTab();
+            }
+        });
     }
+}
+
+function clearCurrentWeek() {
+    const currentWeekStr = getWeekRangeString(new Date().toISOString());
+    clearWeekOrders(currentWeekStr);
 }
 
 function refreshActiveTab() {
@@ -3684,6 +3784,25 @@ function getWeekRangeString(dateString) {
     
     const format = (dt) => dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     return `${format(monday)} - ${format(sunday)}`;
+}
+
+function isWeekLocked(weekStr, leads) {
+    if (!leads) return false;
+    const currentWeekStr = getWeekRangeString(new Date().toISOString());
+    if (weekStr === currentWeekStr) {
+        return false; // Present week is never locked
+    }
+    const weekOrders = leads.filter(l => l.type === 'order' && getWeekRangeString(l.timestamp) === weekStr);
+    if (weekOrders.length === 0) {
+        return true; // No orders in previous weeks means it is considered locked/completed
+    }
+    return weekOrders.every(o => o.status === 'delivered');
+}
+
+function isLeadLocked(lead, leads) {
+    if (!lead || !leads) return false;
+    const weekStr = getWeekRangeString(lead.timestamp);
+    return isWeekLocked(weekStr, leads);
 }
 
 function getOptionMultiplier(product, optionStr, itemPrice) {
@@ -3853,16 +3972,39 @@ function renderCompanyAnalytics() {
             const profitStyle = profit >= 0 ? 'color: var(--primary-color); font-weight: 700;' : 'color: #d32f2f; font-weight: 700;';
             const profitLabel = profit >= 0 ? `₹${profit}` : `-₹${Math.abs(profit)}`;
             
+            const isCurrentWeek = w.weekStr === getWeekRangeString(new Date().toISOString());
+            const isCompleted = isWeekLocked(w.weekStr, leads);
+            
+            let statusBadgeHtml = '';
+            if (isCurrentWeek) {
+                statusBadgeHtml = `<span style="display: inline-block; background: rgba(46,125,50,0.1); color: var(--primary-color); border: 1px solid rgba(46,125,50,0.2); padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">Present</span>`;
+            } else if (isCompleted) {
+                statusBadgeHtml = `<span style="display: inline-block; background: #e0e0e0; color: #666; border: 1px solid #ccc; padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;"><i class="fa-solid fa-lock" style="font-size: 0.65rem;"></i> Locked</span>`;
+            } else {
+                statusBadgeHtml = `<span style="display: inline-block; background: rgba(245,124,0,0.1); color: var(--accent-color); border: 1px solid rgba(245,124,0,0.2); padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">Incomplete</span>`;
+            }
+            
+            const clearBtnHtml = isCompleted
+                ? `<button class="btn btn-secondary" disabled style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px; opacity: 0.5; cursor: not-allowed; margin-left: 5px;" title="Completed weeks are locked">
+                       <i class="fa-solid fa-lock"></i> Clear
+                   </button>`
+                : `<button class="btn btn-secondary" onclick="clearWeekOrders('${w.weekStr}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px; border: 1.5px solid #d32f2f; color: #d32f2f; background: transparent; margin-left: 5px;">
+                       <i class="fa-solid fa-trash-can"></i> Clear
+                   </button>`;
+            
             tr.innerHTML = `
-                <td style="font-weight: 600; color: var(--text-dark);">${w.weekStr}</td>
+                <td style="font-weight: 600; color: var(--text-dark);">${w.weekStr}${statusBadgeHtml}</td>
                 <td>${w.orders.length}</td>
                 <td><strong>₹${w.grossSales}</strong></td>
                 <td>₹${w.expenses}</td>
                 <td style="${profitStyle}">${profitLabel}</td>
                 <td>
-                    <button class="btn btn-secondary" onclick="viewWeekDetails('${wKey}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">
-                        <i class="fa-solid fa-magnifying-glass-chart"></i> View Details
-                    </button>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-secondary" onclick="viewWeekDetails('${wKey}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i> Details
+                        </button>
+                        ${clearBtnHtml}
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -3920,7 +4062,14 @@ function viewWeekDetails(weekKey) {
             <td style="font-weight: 600; color: var(--text-dark);">${displayName}</td>
             <td>${formattedQty} ${displayUnit}</td>
             <td>₹${pObj.price}</td>
-            <td>₹${pObj.costPrice}</td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="number" id="inputWeekCost_${weekKey}_${pId}" value="${pObj.costPrice}" min="0" style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
+                    <button class="btn btn-primary" onclick="saveWeekProductCost('${weekKey}', ${pId}, this)" style="padding: 4px 8px; font-size: 0.75rem; border-radius: 8px;" title="Save for this week only">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                </div>
+            </td>
             <td><strong>₹${pObj.totalSales}</strong></td>
             <td>₹${pObj.totalExpense}</td>
             <td style="${profitStyle}">${profitLabel}</td>
@@ -3970,6 +4119,77 @@ function viewWeekDetails(weekKey) {
     
     container.style.display = 'block';
     container.scrollIntoView({ behavior: 'smooth' });
+}
+
+function saveWeekProductCost(weekKey, productId, btnEl) {
+    const input = document.getElementById(`inputWeekCost_${weekKey}_${productId}`);
+    if (!input) return;
+    const newCost = parseInt(input.value) || 0;
+    
+    fetchAllLeads().then((leads) => {
+        const weekOrders = leads.filter(l => l.type === 'order' && getWeekRangeString(l.timestamp) === weekKey);
+        const ordersToUpdate = weekOrders.filter(o => o.items && o.items.some(item => item.id === productId));
+        
+        if (ordersToUpdate.length === 0) {
+            alert("No orders containing this product found in this week.");
+            return;
+        }
+        
+        ordersToUpdate.forEach(o => {
+            o.items.forEach(item => {
+                if (item.id === productId) {
+                    item.costPrice = newCost;
+                }
+            });
+        });
+        
+        if (useFirebase && db) {
+            const batch = db.batch();
+            ordersToUpdate.forEach(o => {
+                batch.set(db.collection("leads").doc(o.id), o);
+            });
+            batch.commit().then(() => {
+                console.log(`Updated week product cost for product ID ${productId} in week ${weekKey}`);
+                refreshAfterWeekCostUpdate(weekKey, btnEl);
+            }).catch(err => console.error("Firestore batch update week product cost failed:", err));
+        } else {
+            let allLeads = [];
+            const localLeads = localStorage.getItem('kshetriva_leads');
+            if (localLeads) {
+                try {
+                    allLeads = JSON.parse(localLeads);
+                } catch (e) {}
+            }
+            ordersToUpdate.forEach(updatedOrder => {
+                const idx = allLeads.findIndex(l => l.id === updatedOrder.id);
+                if (idx !== -1) {
+                    allLeads[idx] = updatedOrder;
+                }
+            });
+            localStorage.setItem('kshetriva_leads', JSON.stringify(allLeads));
+            refreshAfterWeekCostUpdate(weekKey, btnEl);
+        }
+    });
+}
+
+function refreshAfterWeekCostUpdate(weekKey, btnEl) {
+    if (btnEl) {
+        const originalContent = btnEl.innerHTML;
+        btnEl.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+        btnEl.style.backgroundColor = "#2e7d32";
+        btnEl.style.borderColor = "#2e7d32";
+        btnEl.disabled = true;
+        setTimeout(() => {
+            btnEl.innerHTML = originalContent;
+            btnEl.style.backgroundColor = "";
+            btnEl.style.borderColor = "";
+            btnEl.disabled = false;
+        }, 1000);
+    }
+    renderCompanyAnalytics();
+    setTimeout(() => {
+        viewWeekDetails(weekKey);
+    }, 300);
 }
 
 function closeWeekDetails() {
