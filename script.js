@@ -2480,15 +2480,23 @@ function renderAdminLeads() {
             const isLocked = isLeadLocked(lead, leadsList);
             let actionsHtml = '';
             if (lead.type === 'order') {
-                actionsHtml = isLocked
-                    ? `<div class="admin-action-btns">
-                            <button class="admin-action-btn edit" onclick="openOrderFormModal('${lead.id}')" title="Edit Order Details"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="admin-action-btn delete" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #eee; border-color: #ddd; color: #aaa;" title="Locked (Completed Week)"><i class="fa-solid fa-lock"></i></button>
-                       </div>`
-                    : `<div class="admin-action-btns">
-                            <button class="admin-action-btn edit" onclick="openOrderFormModal('${lead.id}')" title="Edit Order Details"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="admin-action-btn delete" onclick="deleteLead('${lead.id}')" title="Delete Order"><i class="fa-solid fa-trash-can"></i></button>
-                       </div>`;
+                const isCurrentWeek = getWeekRangeString(lead.timestamp) === getWeekRangeString(new Date().toISOString());
+                if (isCurrentWeek) {
+                    actionsHtml = isLocked
+                        ? `<div class="admin-action-btns">
+                                <button class="admin-action-btn edit" onclick="openOrderFormModal('${lead.id}')" title="Edit Order Details"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="admin-action-btn delete" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #eee; border-color: #ddd; color: #aaa;" title="Locked (Completed Week)"><i class="fa-solid fa-lock"></i></button>
+                           </div>`
+                        : `<div class="admin-action-btns">
+                                <button class="admin-action-btn edit" onclick="openOrderFormModal('${lead.id}')" title="Edit Order Details"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="admin-action-btn delete" onclick="deleteLead('${lead.id}')" title="Delete Order"><i class="fa-solid fa-trash-can"></i></button>
+                           </div>`;
+                } else {
+                    // For previous week orders: do not render the edit option in Leads section
+                    actionsHtml = isLocked
+                        ? `<button class="admin-action-btn delete" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #eee; border-color: #ddd; color: #aaa;" title="Locked (Completed Week)"><i class="fa-solid fa-lock"></i></button>`
+                        : `<button class="admin-action-btn delete" onclick="deleteLead('${lead.id}')" title="Delete Order"><i class="fa-solid fa-trash-can"></i></button>`;
+                }
             } else {
                 actionsHtml = isLocked
                     ? `<button class="admin-action-btn delete" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #eee; border-color: #ddd; color: #aaa;" title="Locked (Completed Week)"><i class="fa-solid fa-lock"></i></button>`
@@ -3446,6 +3454,7 @@ function renderFounderInsights() {
         ordersOnly.forEach(o => {
             grossSales += o.totalAmount || o.totalSum || 0;
         });
+        grossSales = Math.round(grossSales * 100) / 100;
         
         // Update Stats UI
         document.getElementById('founderRevenueVal').textContent = `₹${grossSales}`;
@@ -4169,7 +4178,9 @@ function renderCompanyAnalytics() {
             allTimeExpense += w.expenses;
         });
         
-        const allTimeProfit = allTimeSales - allTimeExpense;
+        allTimeSales = Math.round(allTimeSales * 100) / 100;
+        allTimeExpense = Math.round(allTimeExpense * 100) / 100;
+        const allTimeProfit = Math.round((allTimeSales - allTimeExpense) * 100) / 100;
         
         document.getElementById('statsAllTimeSales').textContent = `₹${allTimeSales}`;
         document.getElementById('statsAllTimeExpense').textContent = `₹${allTimeExpense}`;
@@ -4213,7 +4224,10 @@ function renderCompanyAnalytics() {
         sortedWeekKeys.forEach(wKey => {
             const w = weeks[wKey];
             const tr = document.createElement('tr');
-            const profit = w.grossSales - w.expenses;
+            
+            const displayGrossSales = Math.round(w.grossSales * 100) / 100;
+            const displayExpenses = Math.round(w.expenses * 100) / 100;
+            const profit = Math.round((w.grossSales - w.expenses) * 100) / 100;
             const profitStyle = profit >= 0 ? 'color: var(--primary-color); font-weight: 700;' : 'color: #d32f2f; font-weight: 700;';
             const profitLabel = profit >= 0 ? `₹${profit}` : `-₹${Math.abs(profit)}`;
             
@@ -4240,8 +4254,8 @@ function renderCompanyAnalytics() {
             tr.innerHTML = `
                 <td style="font-weight: 600; color: var(--text-dark);">${w.weekStr}${statusBadgeHtml}</td>
                 <td>${w.orders.length}</td>
-                <td><strong>₹${w.grossSales}</strong></td>
-                <td>₹${w.expenses}</td>
+                <td><strong>₹${displayGrossSales}</strong></td>
+                <td>₹${displayExpenses}</td>
                 <td style="${profitStyle}">${profitLabel}</td>
                 <td>
                     <div style="display: flex; gap: 5px;">
@@ -4298,7 +4312,9 @@ function viewWeekDetails(weekKey) {
         
         const tr = document.createElement('tr');
         
-        const netProfit = pObj.totalSales - pObj.totalExpense;
+        const displayTotalSales = Math.round(pObj.totalSales * 100) / 100;
+        const displayTotalExpense = Math.round(pObj.totalExpense * 100) / 100;
+        const netProfit = Math.round((pObj.totalSales - pObj.totalExpense) * 100) / 100;
         const profitStyle = netProfit >= 0 ? 'color: var(--primary-color); font-weight: 600;' : 'color: #d32f2f; font-weight: 600;';
         const profitLabel = netProfit >= 0 ? `₹${netProfit}` : `-₹${Math.abs(netProfit)}`;
         const formattedQty = Math.round(pObj.qty * 100) / 100;
@@ -4315,8 +4331,8 @@ function viewWeekDetails(weekKey) {
                     </button>
                 </div>
             </td>
-            <td><strong>₹${pObj.totalSales}</strong></td>
-            <td>₹${pObj.totalExpense}</td>
+            <td><strong>₹${displayTotalSales}</strong></td>
+            <td>₹${displayTotalExpense}</td>
             <td style="${profitStyle}">${profitLabel}</td>
         `;
         tbody.appendChild(tr);
@@ -4329,9 +4345,11 @@ function viewWeekDetails(weekKey) {
         pSales += prod.totalSales;
         pExpenses += prod.totalExpense;
     });
-    const totalDiscount = wData.totalDiscount || 0;
-    const totalDeliveryCharge = wData.totalDeliveryCharge || 0;
-    const netProfit = wData.grossSales - wData.expenses;
+    pSales = Math.round(pSales * 100) / 100;
+    pExpenses = Math.round(pExpenses * 100) / 100;
+    const totalDiscount = Math.round((wData.totalDiscount || 0) * 100) / 100;
+    const totalDeliveryCharge = Math.round((wData.totalDeliveryCharge || 0) * 100) / 100;
+    const netProfit = Math.round((wData.grossSales - wData.expenses) * 100) / 100;
     
     const summaryContainer = document.getElementById('weekDetailsSummary');
     if (summaryContainer) {
