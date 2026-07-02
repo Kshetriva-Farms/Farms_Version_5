@@ -4096,46 +4096,34 @@ function exportLeadsToCSV() {
 }
 
 function getDisplayLeadId(lead, allLeads) {
-    if (lead.id && lead.id.includes('_')) {
-        return lead.id; // Already formatted!
-    }
-    
     const leadDate = new Date(lead.timestamp || parseInt(lead.id));
     if (isNaN(leadDate.getTime())) return lead.id; // Fallback
     
     const dateSuffix = getDateSuffix(leadDate);
     
     if (lead.type === 'order') {
-        const dayOrders = allLeads
-            .filter(l => {
-                if (l.type !== 'order') return false;
-                const d = new Date(l.timestamp || parseInt(l.id));
-                return !isNaN(d.getTime()) && getDateSuffix(d) === dateSuffix;
-            })
+        const allOrders = allLeads
+            .filter(l => l.type === 'order')
             .sort((a, b) => {
                 const timeA = new Date(a.timestamp || parseInt(a.id)).getTime();
                 const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
                 return timeA - timeB;
             });
             
-        const index = dayOrders.findIndex(l => l.id === lead.id);
+        const index = allOrders.findIndex(l => l.id === lead.id);
         const seqNum = index !== -1 ? (index + 1) : 1;
         const paddedSeq = String(seqNum).padStart(3, '0');
         return `${paddedSeq}_${dateSuffix}`;
     } else {
-        const dayChats = allLeads
-            .filter(l => {
-                if (l.type === 'order') return false; // other than order
-                const d = new Date(l.timestamp || parseInt(l.id));
-                return !isNaN(d.getTime()) && getDateSuffix(d) === dateSuffix;
-            })
+        const allChats = allLeads
+            .filter(l => l.type !== 'order')
             .sort((a, b) => {
                 const timeA = new Date(a.timestamp || parseInt(a.id)).getTime();
                 const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
                 return timeA - timeB;
             });
             
-        const index = dayChats.findIndex(l => l.id === lead.id);
+        const index = allChats.findIndex(l => l.id === lead.id);
         const seqNum = index !== -1 ? (index + 1) : 1;
         const paddedSeq = String(seqNum).padStart(3, '0');
         return `${dateSuffix}_${paddedSeq}`;
@@ -4308,7 +4296,13 @@ function exportWeekReportToExcel(weekKey) {
         if (weekOrders.length === 0) {
             html += `<tr><td colspan="8" style="font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #ccc; padding: 8px; text-align: center; color: #777;">No orders logged for this week.</td></tr>`;
         } else {
-            weekOrders.forEach(o => {
+            const sortedWeekOrders = weekOrders.sort((a, b) => {
+                const timeA = new Date(a.timestamp || parseInt(a.id)).getTime();
+                const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
+                return timeA - timeB;
+            });
+            
+            sortedWeekOrders.forEach((o, idx) => {
                 let itemsString = "";
                 if (o.items && o.items.length > 0) {
                     itemsString = o.items.map(item => `${item.name} (${item.option || ''}) x${item.qty}`).join("; ");
@@ -4316,9 +4310,13 @@ function exportWeekReportToExcel(weekKey) {
                     itemsString = o.cartSummary || "";
                 }
                 const dateStr = new Date(o.timestamp).toLocaleString('en-IN');
+                const orderDate = new Date(o.timestamp);
+                const dateSuffix = getDateSuffix(orderDate);
+                const displayId = `${String(idx + 1).padStart(3, '0')}_${dateSuffix}`;
+                
                 html += `
                     <tr>
-                        <td ${tdStyle}>${getDisplayLeadId(o, leads)}</td>
+                        <td ${tdStyle}>${displayId}</td>
                         <td ${tdStyle}>${dateStr}</td>
                         <td ${tdStyle}>${o.name || ""}</td>
                         <td ${tdStyle}>${o.phone || ""}</td>
@@ -4400,15 +4398,11 @@ function generateLeadId(date, type) {
         const dateSuffix = getDateSuffix(date);
         fetchAllLeads().then((leads) => {
             if (type === 'order') {
-                const dayOrders = leads.filter(l => {
-                    if (l.type !== 'order') return false;
-                    const orderDate = new Date(l.timestamp);
-                    return getDateSuffix(orderDate) === dateSuffix;
-                });
+                const allOrders = leads.filter(l => l.type === 'order');
                 
-                // Find max sequence number to prevent conflicts (Max + 1 logic)
+                // Find max sequence number to prevent conflicts (Max + 1 logic across ALL orders)
                 let maxSeq = 0;
-                dayOrders.forEach(o => {
+                allOrders.forEach(o => {
                     if (o.id && o.id.includes('_')) {
                         const parts = o.id.split('_');
                         if (parts.length === 2 && parts[0].length === 3) {
@@ -4424,15 +4418,11 @@ function generateLeadId(date, type) {
                 const paddedSeq = String(nextSeq).padStart(3, '0');
                 resolve(`${paddedSeq}_${dateSuffix}`);
             } else {
-                const dayChats = leads.filter(l => {
-                    if (l.type === 'order') return false;
-                    const chatDate = new Date(l.timestamp);
-                    return getDateSuffix(chatDate) === dateSuffix;
-                });
+                const allChats = leads.filter(l => l.type !== 'order');
                 
-                // Find max sequence number for chats (Max + 1 logic)
+                // Find max sequence number for chats (Max + 1 logic across ALL chats)
                 let maxSeq = 0;
-                dayChats.forEach(c => {
+                allChats.forEach(c => {
                     if (c.id && c.id.includes('_')) {
                         const parts = c.id.split('_');
                         if (parts.length === 2 && parts[1].length === 3) {

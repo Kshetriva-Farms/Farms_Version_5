@@ -442,11 +442,12 @@ For queries, orders, or partner programs:
   3. **Customer Orders Log Table** (list of all orders in that week with items and totals).
   - Uses an Excel-compatible HTML styling template to support **bold** headers and color highlights natively. Added robust date-parsing safety checks to prevent missing order timestamps from breaking the download flow.
 - **Leafy Greens Quantity Mismatch Fix**: Resolved an issue where leafy greens (bunch/katta) ordered under Telugu translations (e.g. `"2 కట్ట"`) resolved incorrectly in dynamic quantity summing. Added Telugu string normalization in `getOptionMultiplier()` and snapshot the multiplier on checkout to future-proof packing logistics.
-- **Sequential Daily Lead & Order IDs**: Replaced numeric timestamp-based IDs (`Date.now()`) with formatted sequential daily IDs:
-  - **For Orders**: Formatted as `{padded_sequence}_{DDMMYYYY}` (e.g. `014_02072026` for the 14th order).
-  - **For Chats/Inquiries**: Formatted as `{DDMMYYYY}_{padded_sequence}` (e.g. `02072026_003` for the 3rd chat).
-  - Uses independent daily counters resolved client-side via a collision-free `Max Sequence + 1` logic, supporting both storefront actions and manual backdated orders.
-- **Customer Leads Section Excel Export**: Replaced the plain CSV customer leads export with a styled Excel HTML spreadsheet (`.xls`), mapping all order and chat IDs (including legacy timestamps) to their respective sequential daily ID formats and rendering all table headers in bold.
+- **Sequential Lead & Order IDs**: Replaced numeric timestamp-based IDs (`Date.now()`) with continuous formatted sequential IDs (no daily resets):
+  - **For Orders**: Formatted as `{padded_sequence}_{DDMMYYYY}` (e.g. `045_02072026`). Sequence count increments continuously across all time (all-time sequence flow).
+  - **For Chats/Inquiries**: Formatted as `{DDMMYYYY}_{padded_sequence}` (e.g. `02072026_012`). Sequence count increments continuously across all time.
+  - Generates sequence numbers dynamically using a collision-free `Max Sequence + 1` logic, supporting checkouts and backdated manual orders.
+- **Customer Leads Section Excel Export**: Replaced the plain CSV customer leads export with a styled Excel HTML spreadsheet (`.xls`), mapping all order and chat IDs (including legacy timestamps) to their respective continuous all-time sequential ID formats and rendering all table headers in bold.
+- **Weekly Stats Report (Company Statistics)**: Each weekly Excel report maintains its own week-specific continuous order sequence starting from `001` for the first order of that week.
 
 
 
