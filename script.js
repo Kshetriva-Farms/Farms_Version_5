@@ -3997,23 +3997,52 @@ function exportLeadsToCSV() {
             return;
         }
         
-        // Define CSV Headers
-        const headers = [
-            "ID",
-            "Date & Time",
-            "Customer Name",
-            "Phone Number",
-            "Area (Locality)",
-            "Type",
-            "Cart Summary",
-            "Items Ordered",
-            "Total Amount (₹)",
-            "Discount (₹)",
-            "Delivery Charge (₹)",
-            "Status"
-        ];
-        
-        const rows = [headers];
+        const thStyle = `style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #e8f5e9; border: 1px solid #ccc; padding: 8px; text-align: left;"`;
+        const tdStyle = `style="font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #ccc; padding: 8px; text-align: left;"`;
+
+        // Build styled Excel-compatible HTML content
+        let html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="utf-8">
+            <!--[if gte mso 9]>
+            <xml>
+                <x:ExcelWorkbook>
+                    <x:ExcelWorksheets>
+                        <x:ExcelWorksheet>
+                            <x:Name>Customer Leads & Orders</x:Name>
+                            <x:WorksheetOptions>
+                                <x:DisplayGridlines/>
+                            </x:WorksheetOptions>
+                        </x:ExcelWorksheet>
+                    </x:ExcelWorksheets>
+                </x:ExcelWorkbook>
+            </xml>
+            <![endif]-->
+        </head>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; color: #333;">
+            <div style="font-size: 16pt; font-weight: bold; color: #2e7d32; padding: 10px 0;">Kshetriva Farms - Customer Leads & Orders Log</div>
+            <div style="font-size: 11pt; color: #555; padding-bottom: 15px;">Exported On: <b>${new Date().toLocaleString('en-IN')}</b></div>
+            
+            <table style="border-collapse: collapse; width: 100%; margin-bottom: 25px;">
+                <thead>
+                    <tr>
+                        <th ${thStyle}>Order ID</th>
+                        <th ${thStyle}>Date & Time</th>
+                        <th ${thStyle}>Customer Name</th>
+                        <th ${thStyle}>Phone Number</th>
+                        <th ${thStyle}>Area (Locality)</th>
+                        <th ${thStyle}>Type</th>
+                        <th ${thStyle}>Cart Summary</th>
+                        <th ${thStyle}>Items Ordered</th>
+                        <th ${thStyle}>Total Amount (₹)</th>
+                        <th ${thStyle}>Discount (₹)</th>
+                        <th ${thStyle}>Delivery Charge (₹)</th>
+                        <th ${thStyle}>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
         
         leads.forEach(l => {
             let itemsString = "";
@@ -4024,38 +4053,39 @@ function exportLeadsToCSV() {
             }
             
             const dateStr = new Date(l.timestamp).toLocaleString('en-IN');
+            const displayId = l.type === 'order' ? getDisplayOrderId(l, leads) : l.id;
             
-            const row = [
-                l.id,
-                dateStr,
-                l.name || "",
-                l.phone || "",
-                l.area || "",
-                l.type || "",
-                l.cartSummary || "",
-                itemsString,
-                l.totalAmount !== undefined ? l.totalAmount : "",
-                l.discountAmount !== undefined ? l.discountAmount : "",
-                l.deliveryCharge !== undefined ? l.deliveryCharge : "",
-                l.status || ""
-            ];
-            
-            // Map values to handle quotes and escaping
-            const escapedRow = row.map(val => {
-                const text = String(val).replace(/"/g, '""');
-                return text.includes(',') || text.includes('\n') || text.includes('"') ? `"${text}"` : text;
-            });
-            
-            rows.push(escapedRow);
+            html += `
+                <tr>
+                    <td ${tdStyle}>${displayId}</td>
+                    <td ${tdStyle}>${dateStr}</td>
+                    <td ${tdStyle}>${l.name || ""}</td>
+                    <td ${tdStyle}>${l.phone || ""}</td>
+                    <td ${tdStyle}>${l.area || ""}</td>
+                    <td ${tdStyle}>${l.type || ""}</td>
+                    <td ${tdStyle}>${l.cartSummary || ""}</td>
+                    <td ${tdStyle}>${itemsString}</td>
+                    <td ${tdStyle}>₹${l.totalAmount !== undefined ? l.totalAmount : ""}</td>
+                    <td ${tdStyle}>₹${l.discountAmount !== undefined ? l.discountAmount : ""}</td>
+                    <td ${tdStyle}>₹${l.deliveryCharge !== undefined ? l.deliveryCharge : ""}</td>
+                    <td ${tdStyle}>${l.status || ""}</td>
+                </tr>
+            `;
         });
         
-        const csvContent = rows.map(e => e.join(",")).join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        html += `
+                </tbody>
+            </table>
+        </body>
+        </html>
+        `;
+        
+        const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `kshetriva_leads_export_${Date.now()}.csv`);
+        link.setAttribute("download", `kshetriva_leads_export_${Date.now()}.xls`);
         document.body.appendChild(link);
         
         link.click();

@@ -443,4 +443,6 @@ For queries, orders, or partner programs:
   - Uses an Excel-compatible HTML styling template to support **bold** headers and color highlights natively. Added robust date-parsing safety checks to prevent missing order timestamps from breaking the download flow.
 - **Leafy Greens Quantity Mismatch Fix**: Resolved an issue where leafy greens (bunch/katta) ordered under Telugu translations (e.g. `"2 కట్ట"`) resolved incorrectly in dynamic quantity summing. Added Telugu string normalization in `getOptionMultiplier()` and snapshot the multiplier on checkout to future-proof packing logistics.
 - **Sequential Daily Order IDs**: Replaced numeric timestamp-based IDs (`Date.now()`) with formatted sequential order IDs: `{padded_sequence}_{DDMMYYYY}` (e.g., `014_02072026` for the 14th order on July 2, 2026). Generates sequence counts client-side using a collision-free `Max Sequence + 1` logic, supporting both storefront checkouts and backdated admin manual orders.
+- **Customer Leads Section Excel Export**: Replaced the plain CSV customer leads export with a styled Excel HTML spreadsheet (`.xls`), mapping all order IDs (including legacy timestamps) to their daily sequence IDs and rendering all table headers in bold.
+
 
