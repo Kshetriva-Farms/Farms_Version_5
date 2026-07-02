@@ -1965,7 +1965,7 @@ function getFarmerIdForProduct(productId) {
 
 const detailsForm = document.getElementById('whatsappDetailsForm');
 if (detailsForm) {
-    detailsForm.addEventListener('submit', (e) => {
+    detailsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('custName').value.trim();
         const phone = document.getElementById('custPhone').value.trim();
@@ -2037,8 +2037,10 @@ if (detailsForm) {
             cartSummary = "General Enquiry Chat";
         }
         
+        const orderId = type === 'order' ? await generateOrderId(new Date(timestamp)) : Date.now().toString();
+        
         const lead = {
-            id: Date.now().toString(),
+            id: orderId,
             name,
             phone,
             area,
@@ -3883,59 +3885,66 @@ function saveManualOrder(e) {
     const totalAmount = Math.round((subtotal - discountAmount + deliveryChargeVal) * 100) / 100;
     const cartSummary = `${itemsCount} items, Total: ₹${totalAmount}`;
     
-    const lead = {
-        id: idVal || Date.now().toString(),
-        name,
-        phone,
-        area,
-        timestamp,
-        type: 'order',
-        cartSummary,
-        items,
-        totalAmount,
-        discountAmount,
-        discountPercentage,
-        deliveryCharge: deliveryChargeVal,
-        status,
-        coupon: ''
-    };
+    const orderDate = dateInputVal ? new Date(dateInputVal) : new Date();
+    const orderIdPromise = idVal ? Promise.resolve(idVal) : generateOrderId(orderDate);
     
-    if (useFirebase && db) {
-        db.collection("leads").doc(lead.id).set(lead)
-            .then(() => {
-                console.log("Manual Order saved successfully.");
-                cleanupFirestoreLeads();
-                closeOrderFormModal();
-                refreshActiveTab();
-            })
-            .catch(err => {
-                console.error("Firebase manual order save failed, falling back locally:", err);
-                saveLeadToLocalStorage(lead);
-                closeOrderFormModal();
-                refreshActiveTab();
-            });
-    } else {
-        if (idVal) {
-            let localLeads = [];
-            const storedLeads = localStorage.getItem('kshetriva_leads');
-            if (storedLeads) {
-                try {
-                    localLeads = JSON.parse(storedLeads);
-                } catch (ex) {}
-            }
-            const idx = localLeads.findIndex(l => l.id === idVal);
-            if (idx !== -1) {
-                localLeads[idx] = lead;
-            } else {
-                localLeads.unshift(lead);
-            }
-            localStorage.setItem('kshetriva_leads', JSON.stringify(localLeads));
+    orderIdPromise.then((finalId) => {
+        const lead = {
+            id: finalId,
+            name,
+            phone,
+            area,
+            timestamp,
+            type: 'order',
+            cartSummary,
+            items,
+            totalAmount,
+            discountAmount,
+            discountPercentage,
+            deliveryCharge: deliveryChargeVal,
+            status,
+            coupon: ''
+        };
+        
+        const finishSave = () => {
+            closeOrderFormModal();
+            refreshActiveTab();
+        };
+
+        if (useFirebase && db) {
+            db.collection("leads").doc(lead.id).set(lead)
+                .then(() => {
+                    console.log("Manual Order saved successfully.");
+                    cleanupFirestoreLeads();
+                    finishSave();
+                })
+                .catch(err => {
+                    console.error("Firebase manual order save failed, falling back locally:", err);
+                    saveLeadToLocalStorage(lead);
+                    finishSave();
+                });
         } else {
-            saveLeadToLocalStorage(lead);
+            if (idVal) {
+                let localLeads = [];
+                const storedLeads = localStorage.getItem('kshetriva_leads');
+                if (storedLeads) {
+                    try {
+                        localLeads = JSON.parse(storedLeads);
+                    } catch (e) {}
+                }
+                const idx = localLeads.findIndex(l => l.id === idVal);
+                if (idx !== -1) {
+                    localLeads[idx] = lead;
+                } else {
+                    localLeads.unshift(lead);
+                }
+                localStorage.setItem('kshetriva_leads', JSON.stringify(localLeads));
+            } else {
+                saveLeadToLocalStorage(lead);
+            }
+            finishSave();
         }
-        closeOrderFormModal();
-        refreshActiveTab();
-    }
+    });
 }
 
 function clearWeekOrders(weekStr) {
@@ -4296,7 +4305,9 @@ function switchStatsSubTab(subTab) {
 }
 
 function getWeekRangeString(dateString) {
+    if (!dateString) return "Unknown Week";
     const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "Unknown Week";
     const day = d.getDay(); // 0 is Sunday, 1 is Monday...
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
     const monday = new Date(d.setDate(diff));
@@ -4308,6 +4319,42 @@ function getWeekRangeString(dateString) {
     
     const format = (dt) => dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     return `${format(monday)} - ${format(sunday)}`;
+}
+
+function getDateSuffix(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}${month}${year}`;
+}
+
+function generateOrderId(date) {
+    return new Promise((resolve) => {
+        const dateSuffix = getDateSuffix(date);
+        fetchAllLeads().then((leads) => {
+            const dayOrders = leads.filter(l => {
+                if (l.type !== 'order') return false;
+                const orderDate = new Date(l.timestamp);
+                return getDateSuffix(orderDate) === dateSuffix;
+            });
+            
+            // Find max sequence number to prevent conflicts (Max + 1 logic)
+            let maxSeq = 0;
+            dayOrders.forEach(o => {
+                if (o.id && o.id.includes('_')) {
+                    const parts = o.id.split('_');
+                    const seq = parseInt(parts[0]);
+                    if (!isNaN(seq) && seq > maxSeq) {
+                        maxSeq = seq;
+                    }
+                }
+            });
+            
+            const nextSeq = maxSeq + 1;
+            const paddedSeq = String(nextSeq).padStart(3, '0');
+            resolve(`${paddedSeq}_${dateSuffix}`);
+        });
+    });
 }
 
 function isWeekLocked(weekStr, leads) {

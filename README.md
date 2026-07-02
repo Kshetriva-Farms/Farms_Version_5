@@ -9,7 +9,7 @@
 
 Kshetriva Farms is a premium, high-performance single-page web application designed to connect hardworking local farmers from **Maryala, Telangana** directly with urban families. By eliminating middle-men, the platform ensures that families receive fresh, chemical-safe vegetables at fair prices, while local growers earn a sustainable, direct-to-consumer income.
 
-In **Version 4.6**, the platform has matured into a comprehensive **Business Administration and Customer Portal** adding **historical weekly price/cost decoupling**, a **unified weekly price/cost editor**, client-side **styled weekly Excel exporting**, **Telugu localization matching fixes** for unit multipliers, and an updated **Logistics Console**.
+In **Version 4.7**, the platform has matured into a comprehensive **Business Administration and Customer Portal** adding **historical weekly price/cost decoupling**, a **unified weekly price/cost editor**, client-side **styled weekly Excel exporting**, **Telugu localization matching fixes** for unit multipliers, and **sequential date-based order ID generation** (e.g. `014_02072026`).
 
 ---
 
@@ -433,13 +433,14 @@ For queries, orders, or partner programs:
 
 ### 🗓️ July 2, 2026
 
-#### 1. 📊 Styled Weekly Excel Export & Quantity Alignment (Version 4.6)
+#### 1. 📊 Styled Weekly Excel Export & Sequential Order IDs (Version 4.7)
 - **Historical Price Decoupling**: Order items now capture `pricePerUnit` snapshot at checkout. The statistics breakdown dynamically uses this historical snapshot instead of live catalog prices, preventing active price changes from retrospectively altering older sales metrics.
 - **Unified Weekly Price & Cost Editor**: Redesigned the "Product Sales & Profits Breakdown" detailed view to display both selling price and cost price as inline editable fields. Updates are saved strictly for that specific week's orders.
 - **Styled Weekly Excel Export Engine**: Added a "Download Excel" action inside each week's details view. Generates a multi-section spreadsheet layout (with empty spacing lines) containing:
   1. **Weekly Financial Overview** (subtotal sales, expenses, discounts, delivery fees, and net profit/loss).
   2. **Product Sales & Profits Breakdown Table**.
   3. **Customer Orders Log Table** (list of all orders in that week with items and totals).
-  - Uses an Excel-compatible HTML styling template to support **bold** headers and color highlights natively.
+  - Uses an Excel-compatible HTML styling template to support **bold** headers and color highlights natively. Added robust date-parsing safety checks to prevent missing order timestamps from breaking the download flow.
 - **Leafy Greens Quantity Mismatch Fix**: Resolved an issue where leafy greens (bunch/katta) ordered under Telugu translations (e.g. `"2 కట్ట"`) resolved incorrectly in dynamic quantity summing. Added Telugu string normalization in `getOptionMultiplier()` and snapshot the multiplier on checkout to future-proof packing logistics.
+- **Sequential Daily Order IDs**: Replaced numeric timestamp-based IDs (`Date.now()`) with formatted sequential order IDs: `{padded_sequence}_{DDMMYYYY}` (e.g., `014_02072026` for the 14th order on July 2, 2026). Generates sequence counts client-side using a collision-free `Max Sequence + 1` logic, supporting both storefront checkouts and backdated admin manual orders.
 
