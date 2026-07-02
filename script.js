@@ -2037,7 +2037,7 @@ if (detailsForm) {
             cartSummary = "General Enquiry Chat";
         }
         
-        const orderId = type === 'order' ? await generateOrderId(new Date(timestamp)) : Date.now().toString();
+        const orderId = await generateLeadId(new Date(timestamp), type);
         
         const lead = {
             id: orderId,
@@ -3886,7 +3886,7 @@ function saveManualOrder(e) {
     const cartSummary = `${itemsCount} items, Total: ₹${totalAmount}`;
     
     const orderDate = dateInputVal ? new Date(dateInputVal) : new Date();
-    const orderIdPromise = idVal ? Promise.resolve(idVal) : generateOrderId(orderDate);
+    const orderIdPromise = idVal ? Promise.resolve(idVal) : generateLeadId(orderDate, 'order');
     
     orderIdPromise.then((finalId) => {
         const lead = {
@@ -4053,7 +4053,7 @@ function exportLeadsToCSV() {
             }
             
             const dateStr = new Date(l.timestamp).toLocaleString('en-IN');
-            const displayId = l.type === 'order' ? getDisplayOrderId(l, leads) : l.id;
+            const displayId = getDisplayLeadId(l, leads);
             
             html += `
                 <tr>
@@ -4095,32 +4095,51 @@ function exportLeadsToCSV() {
     });
 }
 
-function getDisplayOrderId(order, allLeads) {
-    if (order.id && order.id.includes('_')) {
-        return order.id; // Already formatted!
+function getDisplayLeadId(lead, allLeads) {
+    if (lead.id && lead.id.includes('_')) {
+        return lead.id; // Already formatted!
     }
     
-    // Legacy timestamp ID: format dynamically based on the order date
-    const orderDate = new Date(order.timestamp || parseInt(order.id));
-    if (isNaN(orderDate.getTime())) return order.id; // Fallback
+    const leadDate = new Date(lead.timestamp || parseInt(lead.id));
+    if (isNaN(leadDate.getTime())) return lead.id; // Fallback
     
-    const dateSuffix = getDateSuffix(orderDate);
-    const dayOrders = allLeads
-        .filter(l => {
-            if (l.type !== 'order') return false;
-            const d = new Date(l.timestamp || parseInt(l.id));
-            return !isNaN(d.getTime()) && getDateSuffix(d) === dateSuffix;
-        })
-        .sort((a, b) => {
-            const timeA = new Date(a.timestamp || parseInt(a.id)).getTime();
-            const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
-            return timeA - timeB;
-        });
-        
-    const index = dayOrders.findIndex(l => l.id === order.id);
-    const seqNum = index !== -1 ? (index + 1) : 1;
-    const paddedSeq = String(seqNum).padStart(3, '0');
-    return `${paddedSeq}_${dateSuffix}`;
+    const dateSuffix = getDateSuffix(leadDate);
+    
+    if (lead.type === 'order') {
+        const dayOrders = allLeads
+            .filter(l => {
+                if (l.type !== 'order') return false;
+                const d = new Date(l.timestamp || parseInt(l.id));
+                return !isNaN(d.getTime()) && getDateSuffix(d) === dateSuffix;
+            })
+            .sort((a, b) => {
+                const timeA = new Date(a.timestamp || parseInt(a.id)).getTime();
+                const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
+                return timeA - timeB;
+            });
+            
+        const index = dayOrders.findIndex(l => l.id === lead.id);
+        const seqNum = index !== -1 ? (index + 1) : 1;
+        const paddedSeq = String(seqNum).padStart(3, '0');
+        return `${paddedSeq}_${dateSuffix}`;
+    } else {
+        const dayChats = allLeads
+            .filter(l => {
+                if (l.type === 'order') return false; // other than order
+                const d = new Date(l.timestamp || parseInt(l.id));
+                return !isNaN(d.getTime()) && getDateSuffix(d) === dateSuffix;
+            })
+            .sort((a, b) => {
+                const timeA = new Date(a.timestamp || parseInt(a.id)).getTime();
+                const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
+                return timeA - timeB;
+            });
+            
+        const index = dayChats.findIndex(l => l.id === lead.id);
+        const seqNum = index !== -1 ? (index + 1) : 1;
+        const paddedSeq = String(seqNum).padStart(3, '0');
+        return `${dateSuffix}_${paddedSeq}`;
+    }
 }
 
 function exportWeekReportToExcel(weekKey) {
@@ -4299,7 +4318,7 @@ function exportWeekReportToExcel(weekKey) {
                 const dateStr = new Date(o.timestamp).toLocaleString('en-IN');
                 html += `
                     <tr>
-                        <td ${tdStyle}>${getDisplayOrderId(o, leads)}</td>
+                        <td ${tdStyle}>${getDisplayLeadId(o, leads)}</td>
                         <td ${tdStyle}>${dateStr}</td>
                         <td ${tdStyle}>${o.name || ""}</td>
                         <td ${tdStyle}>${o.phone || ""}</td>
@@ -4376,31 +4395,59 @@ function getDateSuffix(date) {
     return `${day}${month}${year}`;
 }
 
-function generateOrderId(date) {
+function generateLeadId(date, type) {
     return new Promise((resolve) => {
         const dateSuffix = getDateSuffix(date);
         fetchAllLeads().then((leads) => {
-            const dayOrders = leads.filter(l => {
-                if (l.type !== 'order') return false;
-                const orderDate = new Date(l.timestamp);
-                return getDateSuffix(orderDate) === dateSuffix;
-            });
-            
-            // Find max sequence number to prevent conflicts (Max + 1 logic)
-            let maxSeq = 0;
-            dayOrders.forEach(o => {
-                if (o.id && o.id.includes('_')) {
-                    const parts = o.id.split('_');
-                    const seq = parseInt(parts[0]);
-                    if (!isNaN(seq) && seq > maxSeq) {
-                        maxSeq = seq;
+            if (type === 'order') {
+                const dayOrders = leads.filter(l => {
+                    if (l.type !== 'order') return false;
+                    const orderDate = new Date(l.timestamp);
+                    return getDateSuffix(orderDate) === dateSuffix;
+                });
+                
+                // Find max sequence number to prevent conflicts (Max + 1 logic)
+                let maxSeq = 0;
+                dayOrders.forEach(o => {
+                    if (o.id && o.id.includes('_')) {
+                        const parts = o.id.split('_');
+                        if (parts.length === 2 && parts[0].length === 3) {
+                            const seq = parseInt(parts[0]);
+                            if (!isNaN(seq) && seq > maxSeq) {
+                                maxSeq = seq;
+                            }
+                        }
                     }
-                }
-            });
-            
-            const nextSeq = maxSeq + 1;
-            const paddedSeq = String(nextSeq).padStart(3, '0');
-            resolve(`${paddedSeq}_${dateSuffix}`);
+                });
+                
+                const nextSeq = maxSeq + 1;
+                const paddedSeq = String(nextSeq).padStart(3, '0');
+                resolve(`${paddedSeq}_${dateSuffix}`);
+            } else {
+                const dayChats = leads.filter(l => {
+                    if (l.type === 'order') return false;
+                    const chatDate = new Date(l.timestamp);
+                    return getDateSuffix(chatDate) === dateSuffix;
+                });
+                
+                // Find max sequence number for chats (Max + 1 logic)
+                let maxSeq = 0;
+                dayChats.forEach(c => {
+                    if (c.id && c.id.includes('_')) {
+                        const parts = c.id.split('_');
+                        if (parts.length === 2 && parts[1].length === 3) {
+                            const seq = parseInt(parts[1]);
+                            if (!isNaN(seq) && seq > maxSeq) {
+                                maxSeq = seq;
+                            }
+                        }
+                    }
+                });
+                
+                const nextSeq = maxSeq + 1;
+                const paddedSeq = String(nextSeq).padStart(3, '0');
+                resolve(`${dateSuffix}_${paddedSeq}`);
+            }
         });
     });
 }
