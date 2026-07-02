@@ -4065,6 +4065,34 @@ function exportLeadsToCSV() {
     });
 }
 
+function getDisplayOrderId(order, allLeads) {
+    if (order.id && order.id.includes('_')) {
+        return order.id; // Already formatted!
+    }
+    
+    // Legacy timestamp ID: format dynamically based on the order date
+    const orderDate = new Date(order.timestamp || parseInt(order.id));
+    if (isNaN(orderDate.getTime())) return order.id; // Fallback
+    
+    const dateSuffix = getDateSuffix(orderDate);
+    const dayOrders = allLeads
+        .filter(l => {
+            if (l.type !== 'order') return false;
+            const d = new Date(l.timestamp || parseInt(l.id));
+            return !isNaN(d.getTime()) && getDateSuffix(d) === dateSuffix;
+        })
+        .sort((a, b) => {
+            const timeA = new Date(a.timestamp || parseInt(a.id)).getTime();
+            const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
+            return timeA - timeB;
+        });
+        
+    const index = dayOrders.findIndex(l => l.id === order.id);
+    const seqNum = index !== -1 ? (index + 1) : 1;
+    const paddedSeq = String(seqNum).padStart(3, '0');
+    return `${paddedSeq}_${dateSuffix}`;
+}
+
 function exportWeekReportToExcel(weekKey) {
     if (!window.statsWeeksData) return;
     const wData = window.statsWeeksData[weekKey];
@@ -4087,6 +4115,9 @@ function exportWeekReportToExcel(weekKey) {
         const totalDeliveryCharge = Math.round((wData.totalDeliveryCharge || 0) * 100) / 100;
         const netProfit = Math.round((wData.grossSales - wData.expenses) * 100) / 100;
         
+        const thStyle = `style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #e8f5e9; border: 1px solid #ccc; padding: 8px; text-align: left;"`;
+        const tdStyle = `style="font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #ccc; padding: 8px; text-align: left;"`;
+
         // Build styled Excel-compatible HTML content
         let html = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -4106,71 +4137,58 @@ function exportWeekReportToExcel(weekKey) {
                 </x:ExcelWorkbook>
             </xml>
             <![endif]-->
-            <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; }
-                .title { font-size: 16pt; font-weight: bold; color: #2e7d32; padding: 10px 0; }
-                .subtitle { font-size: 11pt; color: #555; padding-bottom: 15px; }
-                .section-header { font-size: 13pt; font-weight: bold; color: #1565c0; padding: 10px 0; }
-                table { border-collapse: collapse; width: 100%; margin-bottom: 25px; }
-                th { font-weight: bold; background-color: #e8f5e9; border: 1px solid #ccc; padding: 8px; text-align: left; }
-                td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-                .bold { font-weight: bold; }
-                .totals-row { font-weight: bold; background-color: #f5f5f5; }
-                .profit-pos { color: #2e7d32; font-weight: bold; }
-                .profit-neg { color: #c62828; font-weight: bold; }
-            </style>
         </head>
-        <body>
-            <div class="title">Kshetriva Farms - Weekly Business Report</div>
-            <div class="subtitle">Reporting Period: Week of <b>${weekKey}</b></div>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; color: #333;">
+            <div style="font-size: 16pt; font-weight: bold; color: #2e7d32; padding: 10px 0;">Kshetriva Farms - Weekly Business Report</div>
+            <div style="font-size: 11pt; color: #555; padding-bottom: 15px;">Reporting Period: Week of <b>${weekKey}</b></div>
             
             <!-- Section 1: Weekly Financial Statistics -->
-            <div class="section-header">1. Weekly Financial Statistics (Overview)</div>
-            <table>
+            <div style="font-size: 13pt; font-weight: bold; color: #1565c0; padding: 10px 0; margin-top: 15px;">1. Weekly Financial Statistics (Overview)</div>
+            <table style="border-collapse: collapse; width: 100%; margin-bottom: 25px;">
                 <thead>
                     <tr>
-                        <th style="width: 250px;">Financial Metric</th>
-                        <th style="width: 150px;">Amount (₹)</th>
+                        <th style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #e8f5e9; border: 1px solid #ccc; padding: 8px; text-align: left; width: 250px;">Financial Metric</th>
+                        <th style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #e8f5e9; border: 1px solid #ccc; padding: 8px; text-align: left; width: 150px;">Amount (₹)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Products Subtotal Sales</td>
-                        <td>₹${pSales}</td>
+                        <td ${tdStyle}>Products Subtotal Sales</td>
+                        <td ${tdStyle}>₹${pSales}</td>
                     </tr>
                     <tr>
-                        <td>Product Expenses (Costs)</td>
-                        <td>₹${pExpenses}</td>
+                        <td ${tdStyle}>Product Expenses (Costs)</td>
+                        <td ${tdStyle}>₹${pExpenses}</td>
                     </tr>
                     <tr>
-                        <td>Total Discounts Applied</td>
-                        <td style="color: #c62828;">-₹${totalDiscount}</td>
+                        <td style="font-family: 'Segoe UI', Arial, sans-serif; color: #c62828; border: 1px solid #ccc; padding: 8px; text-align: left;">Total Discounts Applied</td>
+                        <td style="font-family: 'Segoe UI', Arial, sans-serif; color: #c62828; border: 1px solid #ccc; padding: 8px; text-align: left;">-₹${totalDiscount}</td>
                     </tr>
                     <tr>
-                        <td>Delivery Charges Collected</td>
-                        <td>+₹${totalDeliveryCharge}</td>
+                        <td ${tdStyle}>Delivery Charges Collected</td>
+                        <td ${tdStyle}>+₹${totalDeliveryCharge}</td>
                     </tr>
-                    <tr class="totals-row">
-                        <td>Weekly Net Profit / Loss</td>
-                        <td class="${netProfit >= 0 ? 'profit-pos' : 'profit-neg'}">₹${netProfit}</td>
+                    <tr style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #f5f5f5;">
+                        <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left;">Weekly Net Profit / Loss</td>
+                        <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left; color: ${netProfit >= 0 ? '#2e7d32' : '#c62828'};">₹${netProfit}</td>
                     </tr>
                 </tbody>
             </table>
             
-            <table><tr><td></td></tr><tr><td></td></tr></table> <!-- Space rows -->
+            <table style="border-collapse: collapse; width: 100%; margin-bottom: 25px;"><tr><td style="border: none; height: 20px;"></td></tr><tr><td style="border: none; height: 20px;"></td></tr></table> <!-- Space rows -->
 
             <!-- Section 2: Product Sales & Profits Breakdown -->
-            <div class="section-header">2. Product Sales & Profits Breakdown (Detailed)</div>
-            <table>
+            <div style="font-size: 13pt; font-weight: bold; color: #1565c0; padding: 10px 0; margin-top: 15px;">2. Product Sales & Profits Breakdown (Detailed)</div>
+            <table style="border-collapse: collapse; width: 100%; margin-bottom: 25px;">
                 <thead>
                     <tr>
-                        <th>Product Name</th>
-                        <th>Quantity Sold</th>
-                        <th>Selling Price (₹)</th>
-                        <th>Cost Price (₹)</th>
-                        <th>Subtotal Sales (₹)</th>
-                        <th>Subtotal Expenses (₹)</th>
-                        <th>Product Profit/Loss (₹)</th>
+                        <th ${thStyle}>Product Name</th>
+                        <th ${thStyle}>Quantity Sold</th>
+                        <th ${thStyle}>Selling Price (₹)</th>
+                        <th ${thStyle}>Cost Price (₹)</th>
+                        <th ${thStyle}>Subtotal Sales (₹)</th>
+                        <th ${thStyle}>Subtotal Expenses (₹)</th>
+                        <th ${thStyle}>Product Profit/Loss (₹)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -4193,53 +4211,53 @@ function exportWeekReportToExcel(weekKey) {
             
             html += `
                 <tr>
-                    <td>${displayName}</td>
-                    <td>${Math.round(pObj.qty * 100) / 100} ${displayUnit}</td>
-                    <td>₹${pObj.pricePerUnit !== undefined ? pObj.pricePerUnit : pObj.price}</td>
-                    <td>₹${pObj.costPrice}</td>
-                    <td>₹${subtotalSales}</td>
-                    <td>₹${subtotalExpense}</td>
-                    <td class="${profit >= 0 ? 'profit-pos' : 'profit-neg'}">₹${profit}</td>
+                    <td ${tdStyle}>${displayName}</td>
+                    <td ${tdStyle}>${Math.round(pObj.qty * 100) / 100} ${displayUnit}</td>
+                    <td ${tdStyle}>₹${pObj.pricePerUnit !== undefined ? pObj.pricePerUnit : pObj.price}</td>
+                    <td ${tdStyle}>₹${pObj.costPrice}</td>
+                    <td ${tdStyle}>₹${subtotalSales}</td>
+                    <td ${tdStyle}>₹${subtotalExpense}</td>
+                    <td style="font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #ccc; padding: 8px; text-align: left; font-weight: bold; color: ${profit >= 0 ? '#2e7d32' : '#c62828'};">₹${profit}</td>
                 </tr>
             `;
         });
         
         const totalProfit = Math.round((pSales - pExpenses) * 100) / 100;
         html += `
-                <tr class="totals-row">
-                    <td>TOTALS</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>₹${pSales}</td>
-                    <td>₹${pExpenses}</td>
-                    <td class="${totalProfit >= 0 ? 'profit-pos' : 'profit-neg'}">₹${totalProfit}</td>
+                <tr style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #f5f5f5;">
+                    <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left;">TOTALS</td>
+                    <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left;">-</td>
+                    <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left;">-</td>
+                    <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left;">-</td>
+                    <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left;">₹${pSales}</td>
+                    <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left;">₹${pExpenses}</td>
+                    <td style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: left; color: ${totalProfit >= 0 ? '#2e7d32' : '#c62828'};">₹${totalProfit}</td>
                 </tr>
             </tbody>
         </table>
 
-        <table><tr><td></td></tr><tr><td></td></tr></table> <!-- Space rows -->
+        <table style="border-collapse: collapse; width: 100%; margin-bottom: 25px;"><tr><td style="border: none; height: 20px;"></td></tr><tr><td style="border: none; height: 20px;"></td></tr></table> <!-- Space rows -->
 
         <!-- Section 3: Customer Orders List -->
-        <div class="section-header">3. Customer Orders Log for the Week</div>
-        <table>
+        <div style="font-size: 13pt; font-weight: bold; color: #1565c0; padding: 10px 0; margin-top: 15px;">3. Customer Orders Log for the Week</div>
+        <table style="border-collapse: collapse; width: 100%; margin-bottom: 25px;">
             <thead>
                 <tr>
-                    <th>Order ID</th>
-                    <th>Date & Time</th>
-                    <th>Customer Name</th>
-                    <th>Phone Number</th>
-                    <th>Area (Locality)</th>
-                    <th>Ordered Items</th>
-                    <th>Total Amount (₹)</th>
-                    <th>Status</th>
+                    <th ${thStyle}>Order ID</th>
+                    <th ${thStyle}>Date & Time</th>
+                    <th ${thStyle}>Customer Name</th>
+                    <th ${thStyle}>Phone Number</th>
+                    <th ${thStyle}>Area (Locality)</th>
+                    <th ${thStyle}>Ordered Items</th>
+                    <th ${thStyle}>Total Amount (₹)</th>
+                    <th ${thStyle}>Status</th>
                 </tr>
             </thead>
             <tbody>
         `;
         
         if (weekOrders.length === 0) {
-            html += `<tr><td colspan="8" style="text-align: center; color: #777;">No orders logged for this week.</td></tr>`;
+            html += `<tr><td colspan="8" style="font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #ccc; padding: 8px; text-align: center; color: #777;">No orders logged for this week.</td></tr>`;
         } else {
             weekOrders.forEach(o => {
                 let itemsString = "";
@@ -4251,14 +4269,14 @@ function exportWeekReportToExcel(weekKey) {
                 const dateStr = new Date(o.timestamp).toLocaleString('en-IN');
                 html += `
                     <tr>
-                        <td>${o.id}</td>
-                        <td>${dateStr}</td>
-                        <td>${o.name || ""}</td>
-                        <td>${o.phone || ""}</td>
-                        <td>${o.area || ""}</td>
-                        <td>${itemsString}</td>
-                        <td>₹${o.totalAmount !== undefined ? o.totalAmount : ""}</td>
-                        <td>${o.status || ""}</td>
+                        <td ${tdStyle}>${getDisplayOrderId(o, leads)}</td>
+                        <td ${tdStyle}>${dateStr}</td>
+                        <td ${tdStyle}>${o.name || ""}</td>
+                        <td ${tdStyle}>${o.phone || ""}</td>
+                        <td ${tdStyle}>${o.area || ""}</td>
+                        <td ${tdStyle}>${itemsString}</td>
+                        <td ${tdStyle}>₹${o.totalAmount !== undefined ? o.totalAmount : ""}</td>
+                        <td ${tdStyle}>${o.status || ""}</td>
                     </tr>
                 `;
             });
