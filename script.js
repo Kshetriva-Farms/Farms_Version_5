@@ -3974,6 +3974,81 @@ function clearCurrentWeek() {
     clearWeekOrders(currentWeekStr);
 }
 
+function exportLeadsToCSV() {
+    fetchAllLeads().then((leads) => {
+        if (!leads || leads.length === 0) {
+            alert("No data available to export.");
+            return;
+        }
+        
+        // Define CSV Headers
+        const headers = [
+            "ID",
+            "Date & Time",
+            "Customer Name",
+            "Phone Number",
+            "Area (Locality)",
+            "Type",
+            "Cart Summary",
+            "Items Ordered",
+            "Total Amount (₹)",
+            "Discount (₹)",
+            "Delivery Charge (₹)",
+            "Status"
+        ];
+        
+        const rows = [headers];
+        
+        leads.forEach(l => {
+            let itemsString = "";
+            if (l.items && l.items.length > 0) {
+                itemsString = l.items.map(item => `${item.name} (${item.option || ''}) x${item.qty}`).join("; ");
+            } else {
+                itemsString = l.cartSummary || "";
+            }
+            
+            const dateStr = new Date(l.timestamp).toLocaleString('en-IN');
+            
+            const row = [
+                l.id,
+                dateStr,
+                l.name || "",
+                l.phone || "",
+                l.area || "",
+                l.type || "",
+                l.cartSummary || "",
+                itemsString,
+                l.totalAmount !== undefined ? l.totalAmount : "",
+                l.discountAmount !== undefined ? l.discountAmount : "",
+                l.deliveryCharge !== undefined ? l.deliveryCharge : "",
+                l.status || ""
+            ];
+            
+            // Map values to handle quotes and escaping
+            const escapedRow = row.map(val => {
+                const text = String(val).replace(/"/g, '""');
+                return text.includes(',') || text.includes('\n') || text.includes('"') ? `"${text}"` : text;
+            });
+            
+            rows.push(escapedRow);
+        });
+        
+        const csvContent = rows.map(e => e.join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `kshetriva_leads_export_${Date.now()}.csv`);
+        document.body.appendChild(link);
+        
+        link.click();
+        
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    });
+}
+
 function refreshActiveTab() {
     const leadsSec = document.getElementById('adminLeadsSection');
     const founderSec = document.getElementById('adminFounderSection');
