@@ -4056,6 +4056,226 @@ function exportLeadsToCSV() {
     });
 }
 
+function exportWeekReportToExcel(weekKey) {
+    if (!window.statsWeeksData) return;
+    const wData = window.statsWeeksData[weekKey];
+    if (!wData) return;
+
+    fetchAllLeads().then((leads) => {
+        // Filter orders for the specified week
+        const weekOrders = leads.filter(l => l.type === 'order' && getWeekRangeString(l.timestamp) === weekKey);
+        
+        let pSales = 0;
+        let pExpenses = 0;
+        Object.values(wData.products).forEach(prod => {
+            pSales += prod.totalSales;
+            pExpenses += prod.totalExpense;
+        });
+        pSales = Math.round(pSales * 100) / 100;
+        pExpenses = Math.round(pExpenses * 100) / 100;
+        
+        const totalDiscount = Math.round((wData.totalDiscount || 0) * 100) / 100;
+        const totalDeliveryCharge = Math.round((wData.totalDeliveryCharge || 0) * 100) / 100;
+        const netProfit = Math.round((wData.grossSales - wData.expenses) * 100) / 100;
+        
+        // Build styled Excel-compatible HTML content
+        let html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="utf-8">
+            <!--[if gte mso 9]>
+            <xml>
+                <x:ExcelWorkbook>
+                    <x:ExcelWorksheets>
+                        <x:ExcelWorksheet>
+                            <x:Name>Weekly Financial Report</x:Name>
+                            <x:WorksheetOptions>
+                                <x:DisplayGridlines/>
+                            </x:WorksheetOptions>
+                        </x:ExcelWorksheet>
+                    </x:ExcelWorksheets>
+                </x:ExcelWorkbook>
+            </xml>
+            <![endif]-->
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; }
+                .title { font-size: 16pt; font-weight: bold; color: #2e7d32; padding: 10px 0; }
+                .subtitle { font-size: 11pt; color: #555; padding-bottom: 15px; }
+                .section-header { font-size: 13pt; font-weight: bold; color: #1565c0; padding: 10px 0; }
+                table { border-collapse: collapse; width: 100%; margin-bottom: 25px; }
+                th { font-weight: bold; background-color: #e8f5e9; border: 1px solid #ccc; padding: 8px; text-align: left; }
+                td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                .bold { font-weight: bold; }
+                .totals-row { font-weight: bold; background-color: #f5f5f5; }
+                .profit-pos { color: #2e7d32; font-weight: bold; }
+                .profit-neg { color: #c62828; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <div class="title">Kshetriva Farms - Weekly Business Report</div>
+            <div class="subtitle">Reporting Period: Week of <b>${weekKey}</b></div>
+            
+            <!-- Section 1: Weekly Financial Statistics -->
+            <div class="section-header">1. Weekly Financial Statistics (Overview)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 250px;">Financial Metric</th>
+                        <th style="width: 150px;">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Products Subtotal Sales</td>
+                        <td>₹${pSales}</td>
+                    </tr>
+                    <tr>
+                        <td>Product Expenses (Costs)</td>
+                        <td>₹${pExpenses}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Discounts Applied</td>
+                        <td style="color: #c62828;">-₹${totalDiscount}</td>
+                    </tr>
+                    <tr>
+                        <td>Delivery Charges Collected</td>
+                        <td>+₹${totalDeliveryCharge}</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td>Weekly Net Profit / Loss</td>
+                        <td class="${netProfit >= 0 ? 'profit-pos' : 'profit-neg'}">₹${netProfit}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <table><tr><td></td></tr><tr><td></td></tr></table> <!-- Space rows -->
+
+            <!-- Section 2: Product Sales & Profits Breakdown -->
+            <div class="section-header">2. Product Sales & Profits Breakdown (Detailed)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Quantity Sold</th>
+                        <th>Selling Price (₹)</th>
+                        <th>Cost Price (₹)</th>
+                        <th>Subtotal Sales (₹)</th>
+                        <th>Subtotal Expenses (₹)</th>
+                        <th>Product Profit/Loss (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        Object.keys(wData.products).forEach(pId => {
+            const pObj = wData.products[pId];
+            const prod = products.find(p => p.id === parseInt(pId));
+            let displayName = pObj.name;
+            let displayUnit = pObj.unit;
+            if (prod) {
+                const translatedProd = getTranslatedProduct(prod);
+                displayName = translatedProd.name;
+                displayUnit = translatedProd.unit;
+            }
+            
+            const subtotalSales = Math.round(pObj.totalSales * 100) / 100;
+            const subtotalExpense = Math.round(pObj.totalExpense * 100) / 100;
+            const profit = Math.round((subtotalSales - subtotalExpense) * 100) / 100;
+            
+            html += `
+                <tr>
+                    <td>${displayName}</td>
+                    <td>${Math.round(pObj.qty * 100) / 100} ${displayUnit}</td>
+                    <td>₹${pObj.pricePerUnit !== undefined ? pObj.pricePerUnit : pObj.price}</td>
+                    <td>₹${pObj.costPrice}</td>
+                    <td>₹${subtotalSales}</td>
+                    <td>₹${subtotalExpense}</td>
+                    <td class="${profit >= 0 ? 'profit-pos' : 'profit-neg'}">₹${profit}</td>
+                </tr>
+            `;
+        });
+        
+        const totalProfit = Math.round((pSales - pExpenses) * 100) / 100;
+        html += `
+                <tr class="totals-row">
+                    <td>TOTALS</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>₹${pSales}</td>
+                    <td>₹${pExpenses}</td>
+                    <td class="${totalProfit >= 0 ? 'profit-pos' : 'profit-neg'}">₹${totalProfit}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table><tr><td></td></tr><tr><td></td></tr></table> <!-- Space rows -->
+
+        <!-- Section 3: Customer Orders List -->
+        <div class="section-header">3. Customer Orders Log for the Week</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date & Time</th>
+                    <th>Customer Name</th>
+                    <th>Phone Number</th>
+                    <th>Area (Locality)</th>
+                    <th>Ordered Items</th>
+                    <th>Total Amount (₹)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        if (weekOrders.length === 0) {
+            html += `<tr><td colspan="8" style="text-align: center; color: #777;">No orders logged for this week.</td></tr>`;
+        } else {
+            weekOrders.forEach(o => {
+                let itemsString = "";
+                if (o.items && o.items.length > 0) {
+                    itemsString = o.items.map(item => `${item.name} (${item.option || ''}) x${item.qty}`).join("; ");
+                } else {
+                    itemsString = o.cartSummary || "";
+                }
+                const dateStr = new Date(o.timestamp).toLocaleString('en-IN');
+                html += `
+                    <tr>
+                        <td>${o.id}</td>
+                        <td>${dateStr}</td>
+                        <td>${o.name || ""}</td>
+                        <td>${o.phone || ""}</td>
+                        <td>${o.area || ""}</td>
+                        <td>${itemsString}</td>
+                        <td>₹${o.totalAmount !== undefined ? o.totalAmount : ""}</td>
+                        <td>${o.status || ""}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += `
+                </tbody>
+            </table>
+        </body>
+        </html>
+        `;
+        
+        // Export HTML Blob as warning-compatible Excel file
+        const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `kshetriva_weekly_report_${weekKey}.xls`);
+        document.body.appendChild(link);
+        
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    });
+}
+
 function refreshActiveTab() {
     const leadsSec = document.getElementById('adminLeadsSection');
     const founderSec = document.getElementById('adminFounderSection');
@@ -4342,6 +4562,12 @@ function viewWeekDetails(weekKey) {
     if (!wData) return;
     
     title.textContent = `Product Sales & Profits Breakdown: Week of ${weekKey}`;
+    
+    const exportBtn = document.getElementById('btnExportWeekExcel');
+    if (exportBtn) {
+        exportBtn.onclick = () => exportWeekReportToExcel(weekKey);
+    }
+    
     tbody.innerHTML = '';
     
     const pKeys = Object.keys(wData.products);

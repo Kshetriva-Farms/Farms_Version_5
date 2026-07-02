@@ -992,7 +992,10 @@
                         <div id="weekDetailsContainer" style="display: none; margin-top: 30px; background: #fafcfb; padding: 25px; border-radius: 16px; border: 1px solid #eef3f0;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                                 <h4 style="font-size: 1.2rem; color: var(--primary-color); margin: 0;" id="weekDetailsTitle">Week Details</h4>
-                                <button class="btn btn-secondary" onclick="closeWeekDetails()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">Close Details</button>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn btn-primary" id="btnExportWeekExcel" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
+                                    <button class="btn btn-secondary" onclick="closeWeekDetails()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">Close Details</button>
+                                </div>
                             </div>
                             <div class="admin-table-container">
                                 <table class="admin-products-table" style="background: white;">
