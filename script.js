@@ -1795,9 +1795,12 @@ if (cancelConfirmBtn && acceptConfirmBtn) {
 }
 
 // WhatsApp Cart Checkout Order compilation — Phase 1: Enhanced with basket/discount
-function sendCartWhatsAppOrder(name, phone, area) {
+function sendCartWhatsAppOrder(name, phone, area, waWindow) {
     const cartKeys = Object.keys(cart);
-    if (cartKeys.length === 0) return;
+    if (cartKeys.length === 0) {
+        if (waWindow) waWindow.close();
+        return;
+    }
 
     // Block checkout if minimum order rule is not met (at least 3 products OR final total > 99)
     const uniqueItems = cartKeys.length;
@@ -1820,7 +1823,10 @@ function sendCartWhatsAppOrder(name, phone, area) {
         tempTotal = Math.round((tempSubtotal - discountAmt) * 100) / 100;
     }
 
-    if (uniqueItems < 3 && tempTotal <= 99) return;
+    if (uniqueItems < 3 && tempTotal <= 99) {
+        if (waWindow) waWindow.close();
+        return;
+    }
 
     const isTe = currentLang === 'te';
     const dict = translations[currentLang];
@@ -1900,7 +1906,12 @@ function sendCartWhatsAppOrder(name, phone, area) {
         basket_tier: currentTier ? currentTier.id : 'none'
     });
     const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/918374276995?text=${encoded}`, '_blank');
+    const targetUrl = `https://wa.me/918374276995?text=${encoded}`;
+    if (waWindow) {
+        waWindow.location.href = targetUrl;
+    } else {
+        window.open(targetUrl, '_blank');
+    }
 }
 
 // Attach Event Listeners
@@ -1971,6 +1982,9 @@ if (detailsForm) {
         const phone = document.getElementById('custPhone').value.trim();
         const area = document.getElementById('custArea').value.trim();
         if (!name || !phone || !area) return;
+        
+        // Open a blank window synchronously in the user gesture thread to bypass popup blocker
+        const waWindow = window.open('', '_blank');
         
         // Cache to localStorage
         localStorage.setItem('kshetriva_customer_info', JSON.stringify({ name, phone, area }));
@@ -2059,9 +2073,9 @@ if (detailsForm) {
         saveLeadToDatabase(lead);
         if (detailsModal) detailsModal.classList.remove('open');
         if (type === 'order') {
-            sendCartWhatsAppOrder(name, phone, area);
+            sendCartWhatsAppOrder(name, phone, area, waWindow);
         } else {
-            sendChatWhatsAppMessage(name, phone, area);
+            sendChatWhatsAppMessage(name, phone, area, waWindow);
         }
     });
 }
@@ -2334,13 +2348,18 @@ function openWhatsappDetailsModal(type) {
 }
 
 // Format and send general WhatsApp message
-function sendChatWhatsAppMessage(name, phone, area) {
+function sendChatWhatsAppMessage(name, phone, area, waWindow) {
     const isTe = currentLang === 'te';
     const msg = isTe 
         ? `నమస్తే క్షేత్రీవ ఫార్మ్స్,\nనా వివరాలు:\n👤 పేరు: ${name}\n📞 మొబైల్: ${phone}\n📍 ప్రాంతం: ${area}\n\nనేను మీతో చాట్ చేయాలనుకుంటున్నాను మరియు ఆర్డర్ చేయాలనుకుంటున్నాను.`
         : `Hello Kshetriva Farms,\nMy Details:\n👤 Name: ${name}\n📞 Phone: ${phone}\n📍 Area/Locality: ${area}\n\nI would like to enquire about ordering fresh vegetables.`;
     const encoded = encodeURIComponent(msg);
-    window.open(`https://wa.me/918374276995?text=${encoded}`, '_blank');
+    const targetUrl = `https://wa.me/918374276995?text=${encoded}`;
+    if (waWindow) {
+        waWindow.location.href = targetUrl;
+    } else {
+        window.open(targetUrl, '_blank');
+    }
 }
 
 // Database Lead Saving Logic

@@ -449,5 +449,13 @@ For queries, orders, or partner programs:
 - **Customer Leads Section Excel Export**: Replaced the plain CSV customer leads export with a styled Excel HTML spreadsheet (`.xls`), mapping all order and chat IDs (including legacy timestamps) to their respective continuous all-time sequential ID formats and rendering all table headers in bold.
 - **Weekly Stats Report (Company Statistics)**: Each weekly Excel report maintains its own week-specific continuous order sequence starting from `001` for the first order of that week.
 
+### 🗓️ July 3, 2026
+
+#### 1. 💬 WhatsApp Redirection & Browser Popup Blocker Fix (Version 4.8)
+- **User Gesture Preservation**: Resolved an issue where WhatsApp redirects for checkout orders and general chat inquiries were blocked by browser popup blockers.
+- **Synchronous-Asynchronous Bridge**: Implemented a synchronous blank window launch (`window.open('', '_blank')`) immediately inside the user click event handler before the asynchronous sequential ID generation (`await generateLeadId()`) begins.
+- **Deferred Redirection & Lifecycle Management**: Updates the opened window's destination asynchronously once the lead ID resolves and the lead is saved to the database. If checkout validation fails or order requirements are unmet, the temporary blank tab is closed programmatically (`waWindow.close()`) to avoid leaving blank pages.
+
+
 
 
