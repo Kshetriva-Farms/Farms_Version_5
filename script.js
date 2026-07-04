@@ -1907,7 +1907,10 @@ function sendCartWhatsAppOrder(name, phone, area, waWindow) {
     });
     const encoded = encodeURIComponent(message);
     const targetUrl = `https://wa.me/918374276995?text=${encoded}`;
-    if (waWindow) {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    if (isMobile) {
+        window.location.href = targetUrl;
+    } else if (waWindow) {
         waWindow.location.href = targetUrl;
     } else {
         window.open(targetUrl, '_blank');
@@ -1983,8 +1986,9 @@ if (detailsForm) {
         const area = document.getElementById('custArea').value.trim();
         if (!name || !phone || !area) return;
         
-        // Open a blank window synchronously in the user gesture thread to bypass popup blocker
-        const waWindow = window.open('', '_blank');
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        // Open a blank window synchronously in the user gesture thread to bypass popup blocker (desktop only)
+        const waWindow = isMobile ? null : window.open('', '_blank');
         
         // Cache to localStorage
         localStorage.setItem('kshetriva_customer_info', JSON.stringify({ name, phone, area }));
@@ -2355,7 +2359,10 @@ function sendChatWhatsAppMessage(name, phone, area, waWindow) {
         : `Hello Kshetriva Farms,\nMy Details:\n👤 Name: ${name}\n📞 Phone: ${phone}\n📍 Area/Locality: ${area}\n\nI would like to enquire about ordering fresh vegetables.`;
     const encoded = encodeURIComponent(msg);
     const targetUrl = `https://wa.me/918374276995?text=${encoded}`;
-    if (waWindow) {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    if (isMobile) {
+        window.location.href = targetUrl;
+    } else if (waWindow) {
         waWindow.location.href = targetUrl;
     } else {
         window.open(targetUrl, '_blank');

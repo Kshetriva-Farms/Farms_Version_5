@@ -456,6 +456,13 @@ For queries, orders, or partner programs:
 - **Synchronous-Asynchronous Bridge**: Implemented a synchronous blank window launch (`window.open('', '_blank')`) immediately inside the user click event handler before the asynchronous sequential ID generation (`await generateLeadId()`) begins.
 - **Deferred Redirection & Lifecycle Management**: Updates the opened window's destination asynchronously once the lead ID resolves and the lead is saved to the database. If checkout validation fails or order requirements are unmet, the temporary blank tab is closed programmatically (`waWindow.close()`) to avoid leaving blank pages.
 
+### 🗓️ July 4, 2026
+
+#### 1. 📱 Mobile Direct Deep Linking & Hybrid Redirection (Version 4.8.1)
+- **Direct App Redirection on Mobile:** Detected mobile devices using user-agent checks and viewport limits. On mobile devices, WhatsApp checkout and chat links now redirect in the same tab using `window.location.href`. This invokes the OS deep-link handler to open the native WhatsApp application directly without spawning empty browser tabs or redirecting to the WhatsApp Web page.
+- **Orphan Tab Prevention:** Disabled the creation of synchronous blank tabs on mobile devices because `window.location.href` modifications are not subject to browser popup blockers. Desktop devices continue using the secure blank tab bypass to keep the store website open in the user's primary tab.
+
+
 
 
 
