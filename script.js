@@ -55,9 +55,9 @@ function getQuantityOptions(product) {
 
 // ===== Phase 1: Basket Tier Configuration =====
 const BASKET_TIERS = [
-    { id: 'farmplus', name: 'Large Basket', nameTE: 'లార్జ్ బాస్కెట్', minItems: 11, discount: 0.15, icon: '🌾', cssClass: 'tier-farmplus' },
-    { id: 'weekly', name: 'Medium Basket', nameTE: 'మీడియం బాస్కెట్', minItems: 8, discount: 0.10, icon: '🧺', cssClass: 'tier-weekly' },
-    { id: 'family', name: 'Small Basket', nameTE: 'స్మాల్ బాస్కెట్', minItems: 5, discount: 0.05, icon: '🏠', cssClass: 'tier-family' },
+    { id: 'farmplus', name: 'Large Basket', nameTE: 'లార్జ్ బాస్కెట్', minItems: 14, discount: 0.15, icon: '🌾', cssClass: 'tier-farmplus' },
+    { id: 'weekly', name: 'Medium Basket', nameTE: 'మీడియం బాస్కెట్', minItems: 10, discount: 0.10, icon: '🧺', cssClass: 'tier-weekly' },
+    { id: 'family', name: 'Small Basket', nameTE: 'స్మాల్ బాస్కెట్', minItems: 6, discount: 0.05, icon: '🏠', cssClass: 'tier-family' },
 ];
 
 // ===== Phase 1: Ordering Window Schedule =====
@@ -1009,17 +1009,17 @@ function applyLanguage() {
 // Convert GitHub HTML view/edit image URLs to raw viewable URLs
 function cleanGitHubImageUrl(url) {
     if (!url) return '';
-    
+
     // Remove zero-width spaces, invisible characters, and trim
     let cleanUrl = url.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
-    
+
     // Decode first to handle double-encoding issues, then encode spaces and special characters properly
     try {
         cleanUrl = decodeURI(cleanUrl);
     } catch (e) {
         // Ignore decoding errors and proceed with original
     }
-    
+
     // Generalized GitHub file URL matcher (matches blob, raw, edit, blame, etc.)
     const githubRegex = /^https?:\/\/(www\.)?github\.com\/([^\/]+)\/([^\/]+)\/(blob|raw|edit|blame)\/([^\/]+)\/(.+)$/i;
     const match = cleanUrl.match(githubRegex);
@@ -1028,7 +1028,7 @@ function cleanGitHubImageUrl(url) {
         const repo = match[3];
         const branch = match[5];
         let path = match[6];
-        
+
         // Strip out common query parameters that could interfere with raw loading (like ?raw=true, ?plain=1)
         // while keeping the token if it's there
         const queryIndex = path.indexOf('?');
@@ -1036,20 +1036,20 @@ function cleanGitHubImageUrl(url) {
         if (queryIndex !== -1) {
             const params = new URLSearchParams(path.substring(queryIndex));
             path = path.substring(0, queryIndex);
-            
+
             // Keep token if it exists (for private repos)
             if (params.has('token')) {
                 queryString = `?token=${params.get('token')}`;
             }
         }
-        
+
         // Ensure path and branch are properly URI encoded (especially spaces)
         const encodedPath = path.split('/').map(segment => encodeURIComponent(segment)).join('/');
         const encodedBranch = branch.split('/').map(segment => encodeURIComponent(segment)).join('/');
-        
+
         return `https://raw.githubusercontent.com/${username}/${repo}/${encodedBranch}/${encodedPath}${queryString}`;
     }
-    
+
     // Also handle raw.githubusercontent.com URLs directly to ensure they are encoded and cleaned
     const rawContentRegex = /^https?:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+)$/i;
     const rawMatch = cleanUrl.match(rawContentRegex);
@@ -1058,7 +1058,7 @@ function cleanGitHubImageUrl(url) {
         const repo = rawMatch[2];
         const branch = rawMatch[3];
         let path = rawMatch[4];
-        
+
         const queryIndex = path.indexOf('?');
         let queryString = '';
         if (queryIndex !== -1) {
@@ -1068,13 +1068,13 @@ function cleanGitHubImageUrl(url) {
                 queryString = `?token=${params.get('token')}`;
             }
         }
-        
+
         const encodedPath = path.split('/').map(segment => encodeURIComponent(segment)).join('/');
         const encodedBranch = branch.split('/').map(segment => encodeURIComponent(segment)).join('/');
-        
+
         return `https://raw.githubusercontent.com/${username}/${repo}/${encodedBranch}/${encodedPath}${queryString}`;
     }
-    
+
     // For local paths or other domains, just encode spaces safely
     try {
         return encodeURI(cleanUrl);
@@ -1460,7 +1460,7 @@ function updateOrderingWindowBanner() {
 
     const dict = translations[currentLang];
     const { days, hours, mins, isOpen } = getWindowCountdown();
-    
+
     if (manualWindowState && manualWindowState.overrideActive) {
         const isTe = currentLang === 'te';
         if (isOpen) {
@@ -1696,7 +1696,7 @@ function updateCartUI() {
     // Phase 2: Update Delivery Charges (Struck-off ₹69, Fixed ₹49)
     const cartDeliveryRow = document.getElementById('cartDeliveryRow');
     let deliveryCharge = 49;
-    if (appliedCoupon === 'Delivery30') {
+    if (appliedCoupon === 'Delivery@30') {
         deliveryCharge = 30;
     }
 
@@ -1708,8 +1708,8 @@ function updateCartUI() {
             deliveryLabelEl.textContent = dict.deliveryLabel || 'Delivery Charges:';
         }
         if (cartDeliverySumEl) {
-            if (appliedCoupon === 'Delivery30') {
-                cartDeliverySumEl.innerHTML = `<del style="color: #888; margin-right: 5px;">₹49</del> <span style="color: #2e7d32; font-weight: 600;">₹30</span> <span style="font-size: 0.75rem; color: #2e7d32; display: block; font-weight: 500; text-align: right;">(Delivery30)</span>`;
+            if (appliedCoupon === 'Delivery@30') {
+                cartDeliverySumEl.innerHTML = `<del style="color: #888; margin-right: 5px;">₹49</del> <span style="color: #2e7d32; font-weight: 600;">₹30</span> <span style="font-size: 0.75rem; color: #2e7d32; display: block; font-weight: 500; text-align: right;">(Delivery@30)</span>`;
             } else {
                 cartDeliverySumEl.innerHTML = `<del style="color: #888; margin-right: 5px;">₹69</del> <span style="color: #2e7d32; font-weight: 600;">₹49</span>`;
             }
@@ -1873,7 +1873,7 @@ function sendCartWhatsAppOrder(name, phone, area, waWindow) {
 
     let deliveryCharge = 49;
     let originalDeliveryDisplay = "~₹69~";
-    if (appliedCoupon === 'Delivery30') {
+    if (appliedCoupon === 'Delivery@30') {
         deliveryCharge = 30;
         originalDeliveryDisplay = "~₹49~";
     }
@@ -1985,14 +1985,14 @@ if (detailsForm) {
         const phone = document.getElementById('custPhone').value.trim();
         const area = document.getElementById('custArea').value.trim();
         if (!name || !phone || !area) return;
-        
+
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
         // Open a blank window synchronously in the user gesture thread to bypass popup blocker (desktop only)
         const waWindow = isMobile ? null : window.open('', '_blank');
-        
+
         // Cache to localStorage
         localStorage.setItem('kshetriva_customer_info', JSON.stringify({ name, phone, area }));
-        
+
         // Generate lead
         const timestamp = new Date().toISOString();
         const type = whatsappTriggerSource.type; // 'order' or 'chat'
@@ -2003,7 +2003,7 @@ if (detailsForm) {
         let deliveryCharge = 0;
         let status = "harvesting";
         let coupon = "";
-        
+
         if (type === 'order') {
             const cartKeys = Object.keys(cart);
             let itemsCount = 0;
@@ -2018,14 +2018,14 @@ if (detailsForm) {
                     const price = cartEntry.optionPrice || parseInt((product.price || '0').replace(/[^\d]/g, ''));
                     subtotal += price * qty;
                     itemsCount += qty;
-                    
+
                     const basePrice = rawProduct.pricePerUnit || parseInt((rawProduct.price || '0').replace(/[^\d]/g, ''));
                     const itemCostPrice = (rawProduct.costPrice !== undefined) ? rawProduct.costPrice : Math.round(basePrice * 0.6);
-                    
+
                     const qtyOptions = getQuantityOptions(rawProduct);
                     const optObj = qtyOptions.find(o => o.value === cartEntry.optionValue || o.label === cartEntry.optionLabel) || qtyOptions[0];
                     const multiplier = optObj ? (optObj.multiplier || 1) : 1;
-                    
+
                     items.push({
                         id: id,
                         name: product.name,
@@ -2042,7 +2042,7 @@ if (detailsForm) {
             });
             const uniqueItems = cartKeys.length;
             const currentTier = detectBasketTier(uniqueItems);
-            deliveryCharge = appliedCoupon === 'Delivery30' ? 30 : 49;
+            deliveryCharge = appliedCoupon === 'Delivery@30' ? 30 : 49;
             totalAmount = subtotal;
             if (currentTier) {
                 discountAmount = Math.round(subtotal * currentTier.discount * 100) / 100;
@@ -2054,9 +2054,9 @@ if (detailsForm) {
         } else {
             cartSummary = "General Enquiry Chat";
         }
-        
+
         const orderId = await generateLeadId(new Date(timestamp), type);
-        
+
         const lead = {
             id: orderId,
             name,
@@ -2072,7 +2072,7 @@ if (detailsForm) {
             status,
             coupon
         };
-        
+
         if (waWindow) {
             try {
                 waWindow.document.write(`
@@ -2146,9 +2146,9 @@ if (detailsForm) {
                 console.error("Failed to write loader to waWindow:", err);
             }
         }
-        
+
         if (detailsModal) detailsModal.classList.remove('open');
-        
+
         // Wait for database saving callback to complete before redirecting (prevents mobile unload aborts)
         saveLeadToDatabase(lead, () => {
             if (type === 'order') {
@@ -2396,10 +2396,10 @@ function updateAdminSyncStatus(status, details = "") {
 function openWhatsappDetailsModal(type) {
     whatsappTriggerSource.type = type;
     const dict = translations[currentLang];
-    
+
     const detailsModalTitle = document.getElementById('detailsModalTitle');
     const detailsModalSubtitle = document.getElementById('detailsModalSubtitle');
-    
+
     if (type === 'order') {
         if (detailsModalTitle) detailsModalTitle.textContent = dict.detailsModalTitleOrder || "Confirm Order Details";
         if (detailsModalSubtitle) detailsModalSubtitle.textContent = dict.detailsModalSubtitleOrder || "Please provide your delivery details to complete your order.";
@@ -2407,7 +2407,7 @@ function openWhatsappDetailsModal(type) {
         if (detailsModalTitle) detailsModalTitle.textContent = dict.detailsModalTitleChat || "Connect on WhatsApp";
         if (detailsModalSubtitle) detailsModalSubtitle.textContent = dict.detailsModalSubtitleChat || "Please enter your details to start chatting with us on WhatsApp.";
     }
-    
+
     // Auto-fill from localStorage if customer info exists
     const cachedInfo = localStorage.getItem('kshetriva_customer_info');
     if (cachedInfo) {
@@ -2420,7 +2420,7 @@ function openWhatsappDetailsModal(type) {
             console.error("Error parsing cached customer info:", e);
         }
     }
-    
+
     const detailsModal = document.getElementById('whatsappDetailsModal');
     if (detailsModal) {
         detailsModal.classList.add('open');
@@ -2430,7 +2430,7 @@ function openWhatsappDetailsModal(type) {
 // Format and send general WhatsApp message
 function sendChatWhatsAppMessage(name, phone, area, waWindow) {
     const isTe = currentLang === 'te';
-    const msg = isTe 
+    const msg = isTe
         ? `నమస్తే క్షేత్రీవ ఫార్మ్స్,\nనా వివరాలు:\n👤 పేరు: ${name}\n📞 మొబైల్: ${phone}\n📍 ప్రాంతం: ${area}\n\nనేను మీతో చాట్ చేయాలనుకుంటున్నాను మరియు ఆర్డర్ చేయాలనుకుంటున్నాను.`
         : `Hello Kshetriva Farms,\nMy Details:\n👤 Name: ${name}\n📞 Phone: ${phone}\n📍 Area/Locality: ${area}\n\nI would like to enquire about ordering fresh vegetables.`;
     const encoded = encodeURIComponent(msg);
@@ -2504,29 +2504,29 @@ function switchAdminTab(tabName) {
     const tabFounderBtn = document.getElementById('adminTabFounderBtn');
     const tabCompanyStatsBtn = document.getElementById('adminTabCompanyStatsBtn');
     const tabSettingsBtn = document.getElementById('adminTabSettingsBtn');
-    
+
     const catalogSection = document.getElementById('adminCatalogSection');
     const leadsSection = document.getElementById('adminLeadsSection');
     const founderSection = document.getElementById('adminFounderSection');
     const companyStatsSection = document.getElementById('adminCompanyStatsSection');
     const settingsSection = document.getElementById('adminSettingsSection');
-    
+
     const addNewProductBtn = document.querySelector('.admin-header-actions button[onclick="openProductFormModal()"]');
-    
+
     // Reset all tabs active state
     if (tabCatalogBtn) tabCatalogBtn.classList.remove('active');
     if (tabLeadsBtn) tabLeadsBtn.classList.remove('active');
     if (tabFounderBtn) tabFounderBtn.classList.remove('active');
     if (tabCompanyStatsBtn) tabCompanyStatsBtn.classList.remove('active');
     if (tabSettingsBtn) tabSettingsBtn.classList.remove('active');
-    
+
     // Hide all sections
     if (catalogSection) catalogSection.style.display = 'none';
     if (leadsSection) leadsSection.style.display = 'none';
     if (founderSection) founderSection.style.display = 'none';
     if (companyStatsSection) companyStatsSection.style.display = 'none';
     if (settingsSection) settingsSection.style.display = 'none';
-    
+
     if (addNewProductBtn) addNewProductBtn.style.display = 'none';
 
     if (tabName === 'leads') {
@@ -2559,7 +2559,7 @@ function renderAdminLeads() {
     const listContainer = document.getElementById('adminLeadsList');
     if (!listContainer) return;
     listContainer.innerHTML = '';
-    
+
     const showLeads = (leadsList) => {
         if (!leadsList || leadsList.length === 0) {
             listContainer.innerHTML = `
@@ -2572,10 +2572,10 @@ function renderAdminLeads() {
             `;
             return;
         }
-        
+
         leadsList.forEach((lead) => {
             const tr = document.createElement('tr');
-            
+
             const dateStr = new Date(lead.timestamp).toLocaleString('en-IN', {
                 day: 'numeric',
                 month: 'short',
@@ -2583,11 +2583,11 @@ function renderAdminLeads() {
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            
+
             const displayId = getDisplayLeadId(lead, leadsList);
             const badgeClass = lead.type === 'order' ? 'order' : 'chat';
             const badgeLabel = lead.type === 'order' ? 'Order' : 'Chat';
-            
+
             const isLocked = isLeadLocked(lead, leadsList);
             let actionsHtml = '';
             if (lead.type === 'order') {
@@ -2613,12 +2613,12 @@ function renderAdminLeads() {
                     ? `<button class="admin-action-btn delete" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #eee; border-color: #ddd; color: #aaa;" title="Locked (Completed Week)"><i class="fa-solid fa-lock"></i></button>`
                     : `<button class="admin-action-btn delete" onclick="deleteLead('${lead.id}')" title="Delete Lead"><i class="fa-solid fa-trash-can"></i></button>`;
             }
-            
+
             if (isLocked) {
                 tr.style.opacity = '0.85';
                 tr.style.backgroundColor = '#fafafa';
             }
-            
+
             tr.innerHTML = `
                 <td style="font-size: 0.85rem; font-weight: bold; color: var(--primary-color); white-space: nowrap;">${displayId}</td>
                 <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
@@ -2685,7 +2685,7 @@ function deleteLead(leadId) {
                 if (storedLeads) {
                     try {
                         localLeads = JSON.parse(storedLeads);
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 localLeads = localLeads.filter(l => l.id !== leadId);
                 localStorage.setItem('kshetriva_leads', JSON.stringify(localLeads));
@@ -2761,12 +2761,12 @@ function updateManualWindowUI() {
 
 function toggleManualOverride(checked) {
     manualWindowState.overrideActive = checked;
-    
+
     // Log action
-    let actionStr = checked 
+    let actionStr = checked
         ? (manualWindowState.overrideOpen ? "Manual Override Enabled: Forced Open" : "Manual Override Enabled: Forced Closed")
         : "Manual Override Disabled: Auto Schedule Restored";
-        
+
     addWindowLog(actionStr, manualWindowState.overrideOpen);
     saveManualWindowState();
 }
@@ -2780,25 +2780,25 @@ function toggleForcedWindowState(checked) {
     }
 
     manualWindowState.overrideOpen = checked;
-    
+
     // Log action
-    let actionStr = checked 
-        ? "Manual State Changed: Forced Open" 
+    let actionStr = checked
+        ? "Manual State Changed: Forced Open"
         : "Manual State Changed: Forced Closed";
-        
+
     addWindowLog(actionStr, checked);
     saveManualWindowState();
 }
 
 function addWindowLog(action, stateVal) {
     const timestamp = new Date().toISOString();
-    
+
     // Determine user
     let userStr = "Mock Admin";
     if (useFirebase && auth && auth.currentUser) {
         userStr = auth.currentUser.email || auth.currentUser.uid;
     }
-    
+
     const logEntry = {
         id: Date.now().toString(),
         action: action,
@@ -2806,7 +2806,7 @@ function addWindowLog(action, stateVal) {
         timestamp: timestamp,
         user: userStr
     };
-    
+
     if (useFirebase && db) {
         db.collection("window_logs").doc(logEntry.id).set(logEntry)
             .then(() => {
@@ -2835,7 +2835,7 @@ function saveWindowLogToLocalStorage(logEntry) {
     logs.unshift(logEntry);
     logs = logs.slice(0, 25); // Cap at latest 25 logs
     localStorage.setItem('kshetriva_window_logs', JSON.stringify(logs));
-    
+
     // If settings section is open, reload it
     const settingsSection = document.getElementById('adminSettingsSection');
     if (settingsSection && settingsSection.style.display === 'block') {
@@ -2895,7 +2895,7 @@ function renderAdminWindowLogs() {
 
         logsList.forEach((log) => {
             const tr = document.createElement('tr');
-            
+
             const dateStr = new Date(log.timestamp).toLocaleString('en-IN', {
                 day: 'numeric',
                 month: 'short',
@@ -2909,7 +2909,7 @@ function renderAdminWindowLogs() {
             const isOverrideOn = log.action.includes("Enabled") || log.action.includes("Changed");
             const actionBadgeClass = isOverrideOn ? "override-on" : "override-off";
             const actionLabel = log.action.includes("Disabled") ? "Disable Override" : (log.action.includes("Changed") ? "State Change" : "Enable Override");
-            
+
             // State Badge
             const stateClass = log.state === "open" ? "open" : "closed";
             const stateLabel = log.state === "open" ? "Open" : "Closed";
@@ -2989,7 +2989,7 @@ function isAdminLoggedIn() {
 function openAdminLogin() {
     document.getElementById('adminLoginModal').classList.add('open');
     document.getElementById('adminDashboardOverlay').classList.remove('open');
-    
+
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
     if (isLocalhost) {
         const emailEl = document.getElementById('adminEmail');
@@ -3151,7 +3151,7 @@ function updateAdminStats() {
                 if (localLeads) {
                     try {
                         count = JSON.parse(localLeads).length;
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 totalLeadsEl.textContent = count;
             });
@@ -3161,7 +3161,7 @@ function updateAdminStats() {
             if (localLeads) {
                 try {
                     count = JSON.parse(localLeads).length;
-                } catch (e) {}
+                } catch (e) { }
             }
             totalLeadsEl.textContent = count;
         }
@@ -3216,10 +3216,10 @@ function editProductModal(docId, id) {
 
     const priceNum = parseInt(product.price.replace(/[^\d]/g, ''));
     document.getElementById('prodPrice').value = priceNum;
-    
+
     const costPrice = product.costPrice !== undefined ? product.costPrice : Math.round(priceNum * 0.6);
     document.getElementById('prodCostPrice').value = costPrice;
-    
+
     document.getElementById('prodImageUrl').value = product.image;
     document.getElementById('prodInStock').checked = product.inStock !== false;
 
@@ -3237,12 +3237,12 @@ function saveProduct(e) {
     const badge = document.getElementById('prodBadge').value;
     const price = parseInt(document.getElementById('prodPrice').value);
     const costPrice = parseInt(document.getElementById('prodCostPrice').value) || Math.round(price * 0.6);
-    
+
     // Clean and validate GitHub image URLs if inputted
     const rawImageUrl = document.getElementById('prodImageUrl').value;
     const imageUrl = cleanGitHubImageUrl(rawImageUrl);
     document.getElementById('prodImageUrl').value = imageUrl;
-    
+
     const inStock = document.getElementById('prodInStock').checked;
     const farmerId = parseInt(document.getElementById('prodFarmer').value) || getFarmerIdForProduct(idVal ? parseInt(idVal) : 1);
 
@@ -3474,7 +3474,7 @@ function initCouponLogic() {
     if (appliedCoupon) {
         couponInput.value = appliedCoupon;
         couponInput.disabled = true;
-        
+
         const dict = translations[currentLang];
         couponMessage.textContent = (dict.couponApplied || "Coupon '{code}' applied!").replace('{code}', appliedCoupon);
         couponMessage.className = "coupon-msg success";
@@ -3497,7 +3497,7 @@ function initCouponLogic() {
         } else {
             // Apply coupon
             const code = couponInput.value.trim();
-            if (code === 'Delivery30') {
+            if (code === 'Delivery@30') {
                 appliedCoupon = code;
                 localStorage.setItem('kshetriva_coupon', code);
                 couponInput.disabled = true;
@@ -3560,15 +3560,15 @@ function renderFounderInsights() {
     fetchAllLeads().then((leads) => {
         let grossSales = 0;
         let totalOrders = 0;
-        
+
         const ordersOnly = leads.filter(l => l.type === 'order');
         totalOrders = ordersOnly.length;
-        
+
         ordersOnly.forEach(o => {
             grossSales += o.totalAmount || o.totalSum || 0;
         });
         grossSales = Math.round(grossSales * 100) / 100;
-        
+
         // Update Stats UI
         document.getElementById('founderRevenueVal').textContent = `₹${grossSales}`;
         document.getElementById('founderOrdersVal').textContent = totalOrders;
@@ -3576,17 +3576,17 @@ function renderFounderInsights() {
         if (weekOrdersEl) {
             weekOrdersEl.textContent = presentWeekCount;
         }
-        
+
         // Calculate leaderboard for present week only
         const currentWeekStr = getWeekRangeString(new Date().toISOString());
         const presentWeekOrders = ordersOnly.filter(o => getWeekRangeString(o.timestamp) === currentWeekStr);
         renderLeaderboard(presentWeekOrders);
-        
+
         // Render Founder Logistics Console list
         const logContainer = document.getElementById('founderLogisticsList');
         if (!logContainer) return;
         logContainer.innerHTML = '';
-        
+
         if (ordersOnly.length === 0) {
             logContainer.innerHTML = `
                 <tr>
@@ -3597,17 +3597,17 @@ function renderFounderInsights() {
             `;
             return;
         }
-        
+
         ordersOnly.forEach(o => {
             const tr = document.createElement('tr');
-            
+
             const dateStr = new Date(o.timestamp).toLocaleString('en-IN', {
                 day: 'numeric',
                 month: 'short',
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            
+
             let itemLines = [];
             if (o.items) {
                 o.items.forEach(item => {
@@ -3616,7 +3616,7 @@ function renderFounderInsights() {
                 });
             }
             const itemText = itemLines.join(', ') || o.cartSummary || '-';
-            
+
             const isLocked = isLeadLocked(o, leads);
             const actionsHtml = isLocked
                 ? `<div class="admin-action-btns">
@@ -3627,12 +3627,12 @@ function renderFounderInsights() {
                         <button class="admin-action-btn edit" onclick="openOrderFormModal('${o.id}')" title="Edit Order Details"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button class="admin-action-btn delete" onclick="deleteLead('${o.id}')" title="Delete Order"><i class="fa-solid fa-trash-can"></i></button>
                    </div>`;
-            
+
             if (isLocked) {
                 tr.style.opacity = '0.85';
                 tr.style.backgroundColor = '#fafafa';
             }
-            
+
             tr.innerHTML = `
                 <td style="font-size: 0.85rem; font-weight: bold; color: var(--primary-color); white-space: nowrap;">${displayId}</td>
                 <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
@@ -3659,16 +3659,16 @@ function renderLeaderboard(ordersOnly) {
                 const prod = products.find(p => p.id === item.id);
                 const multiplier = item.multiplier !== undefined ? item.multiplier : (prod ? getOptionMultiplier(prod, item.option, item.price) : 1);
                 const baseQty = item.qty * multiplier;
-                
+
                 if (!cropSales[item.id]) {
                     cropSales[item.id] = {
                         totalQty: 0,
                         variants: {}
                     };
                 }
-                
+
                 cropSales[item.id].totalQty += baseQty;
-                
+
                 // Track variant details
                 let optLabel = item.option || '';
                 if (prod && item.option) {
@@ -3683,7 +3683,7 @@ function renderLeaderboard(ordersOnly) {
             });
         }
     });
-    
+
     const sorted = Object.keys(cropSales)
         .map(idStr => {
             const id = parseInt(idStr);
@@ -3697,33 +3697,33 @@ function renderLeaderboard(ordersOnly) {
         })
         .filter(x => x.product !== undefined)
         .sort((a, b) => b.qty - a.qty);
-        
+
     const list = document.getElementById('founderLeaderboardList');
     if (!list) return;
     list.innerHTML = '';
-    
+
     if (sorted.length === 0) {
         list.innerHTML = `<div style="text-align: center; color: #888; font-size: 0.85rem; padding: 15px;">No product sales recorded yet.</div>`;
         return;
     }
-    
+
     sorted.forEach((x, index) => {
         const row = document.createElement('div');
         row.className = 'leaderboard-row';
-        
+
         const barPct = sorted[0].qty > 0 ? Math.round((x.qty / sorted[0].qty) * 100) : 0;
         const fillClass = x.product.category === 'root' ? 'fill-roots' : x.product.category === 'leafy' ? 'fill-leafy' : 'fill-fruits';
         const formattedQty = Math.round(x.qty * 100) / 100;
-        
+
         // Build variant breakdown pills
         const variantParts = [];
         Object.entries(x.variants).forEach(([opt, count]) => {
             variantParts.push(`<span style="background: #f0f4f2; color: #555; padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 500; border: 1px solid #e1e8e4;">${opt} × ${count}</span>`);
         });
-        const variantsHtml = variantParts.length > 0 
+        const variantsHtml = variantParts.length > 0
             ? `<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; font-size: 0.8rem;">${variantParts.join('')}</div>`
             : '';
-            
+
         row.innerHTML = `
             <span class="leaderboard-rank">#${index + 1}</span>
             <img src="${x.product.image}" alt="${x.product.name}" class="leaderboard-img">
@@ -3775,17 +3775,17 @@ function openOrderFormModal(leadId) {
     const idField = document.getElementById('formOrderId');
     const form = document.getElementById('orderEntryForm');
     const listCheck = document.getElementById('orderProductsChecklist');
-    
+
     // Track if user manually edits discount percentage
     let isDiscountManuallyEdited = false;
     const discountInput = document.getElementById('ordDiscountPercentage');
-    
+
     const updateDiscountSuggestionVisibility = () => {
         const checkboxes = document.querySelectorAll('.chk-order-prod:checked');
         const uniqueItemCount = checkboxes.length;
         const tier = detectBasketTier(uniqueItemCount);
         const suggestedPct = tier ? Math.round(tier.discount * 100) : 0;
-        
+
         const badge = document.getElementById('ordDiscountSuggestBadge');
         if (badge) {
             if (suggestedPct > 0) {
@@ -3802,7 +3802,7 @@ function openOrderFormModal(leadId) {
                 badge.style.display = 'none';
             }
         }
-        
+
         // Auto-update if not manually edited by the user
         if (!isDiscountManuallyEdited && discountInput) {
             discountInput.value = suggestedPct;
@@ -3816,19 +3816,19 @@ function openOrderFormModal(leadId) {
             updateDiscountSuggestionVisibility();
         };
     }
-    
+
     const initializeForm = () => {
         idField.value = leadId || '';
         form.reset();
         listCheck.innerHTML = '';
-        
+
         products.forEach(p => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'order-check-item';
-            
+
             const opts = getQuantityOptions(p);
             let optionsHtml = opts.map(opt => `<option value="${opt.value}" data-price="${opt.price}">${opt.label} (₹${opt.price})</option>`).join('');
-            
+
             itemDiv.innerHTML = `
                 <div class="order-check-left">
                     <input type="checkbox" id="chkProd_${p.id}" value="${p.id}" class="chk-order-prod">
@@ -3841,24 +3841,24 @@ function openOrderFormModal(leadId) {
                     <input type="number" id="qtyProd_${p.id}" class="order-qty-input" value="1" min="1" disabled style="width: 50px;">
                 </div>
             `;
-            
+
             const chk = itemDiv.querySelector('.chk-order-prod');
             const sel = itemDiv.querySelector('.order-qty-select');
             const qty = itemDiv.querySelector('.order-qty-input');
-            
+
             chk.addEventListener('change', (e) => {
                 sel.disabled = !e.target.checked;
                 qty.disabled = !e.target.checked;
                 updateDiscountSuggestionVisibility();
             });
-            
+
             listCheck.appendChild(itemDiv);
         });
-        
+
         if (leadId) {
             titleEl.textContent = "Edit Order Details";
             isDiscountManuallyEdited = true; // don't auto-overwrite loaded values
-            
+
             fetchAllLeads().then((leads) => {
                 const o = leads.find(l => l.id === leadId);
                 if (o) {
@@ -3867,25 +3867,25 @@ function openOrderFormModal(leadId) {
                     document.getElementById('ordArea').value = o.area || '';
                     document.getElementById('ordStatus').value = o.status || 'harvesting';
                     document.getElementById('ordDeliveryCharge').value = o.deliveryCharge !== undefined ? o.deliveryCharge : 49;
-                    
+
                     if (o.timestamp) {
                         const orderDate = new Date(o.timestamp);
                         const offset = orderDate.getTimezoneOffset() * 60000;
                         const localISOTime = (new Date(orderDate - offset)).toISOString().slice(0, 16);
                         document.getElementById('ordDate').value = localISOTime;
                     }
-                    
+
                     if (o.items) {
                         o.items.forEach(item => {
                             const chk = document.getElementById(`chkProd_${item.id}`);
                             const sel = document.getElementById(`selOptProd_${item.id}`);
                             const qty = document.getElementById(`qtyProd_${item.id}`);
-                            
+
                             if (chk && sel && qty) {
                                 chk.checked = true;
                                 sel.disabled = false;
                                 qty.disabled = false;
-                                
+
                                 sel.value = item.option || sel.options[0]?.value;
                                 qty.value = item.qty || 1;
                             }
@@ -3917,14 +3917,14 @@ function openOrderFormModal(leadId) {
             const offset = now.getTimezoneOffset() * 60000;
             const localISOTime = (new Date(now - offset)).toISOString().slice(0, 16);
             document.getElementById('ordDate').value = localISOTime;
-            
+
             isDiscountManuallyEdited = false;
             if (discountInput) {
                 discountInput.value = 0;
             }
             updateDiscountSuggestionVisibility();
         }
-        
+
         document.getElementById('orderFormModal').classList.add('open');
     };
 
@@ -3942,16 +3942,16 @@ function saveManualOrder(e) {
     const phone = document.getElementById('ordPhone').value.trim();
     const area = document.getElementById('ordArea').value.trim();
     const status = document.getElementById('ordStatus').value;
-    
+
     if (!name || !phone || !area) return;
-    
+
     const dateInputVal = document.getElementById('ordDate').value;
     const timestamp = dateInputVal ? new Date(dateInputVal).toISOString() : new Date().toISOString();
-    
+
     let items = [];
     let subtotal = 0;
     let itemsCount = 0;
-    
+
     const checkboxes = document.querySelectorAll('.chk-order-prod:checked');
     checkboxes.forEach(chk => {
         const prodId = parseInt(chk.value);
@@ -3959,18 +3959,18 @@ function saveManualOrder(e) {
         if (rawProduct) {
             const selOpt = document.getElementById(`selOptProd_${prodId}`);
             const qtyInput = document.getElementById(`qtyProd_${prodId}`);
-            
+
             const selectedOption = selOpt.value;
             const qty = parseInt(qtyInput.value) || 1;
-            
+
             const opts = getQuantityOptions(rawProduct);
             const optObj = opts.find(o => o.value === selectedOption) || opts[0];
             const price = optObj ? optObj.price : rawProduct.pricePerUnit;
             const multiplier = optObj ? (optObj.multiplier || 1) : 1;
-            
+
             const basePrice = rawProduct.pricePerUnit || parseInt((rawProduct.price || '0').replace(/[^\d]/g, ''));
             const itemCostPrice = (rawProduct.costPrice !== undefined) ? rawProduct.costPrice : Math.round(basePrice * 0.6);
-            
+
             items.push({
                 id: prodId,
                 name: rawProduct.name,
@@ -3983,21 +3983,21 @@ function saveManualOrder(e) {
                 multiplier: multiplier,
                 category: rawProduct.category
             });
-            
+
             subtotal += price * qty;
             itemsCount += qty;
         }
     });
-    
+
     const discountPercentage = parseFloat(document.getElementById('ordDiscountPercentage').value) || 0;
     const discountAmount = Math.round(subtotal * (discountPercentage / 100) * 100) / 100;
     const deliveryChargeVal = parseInt(document.getElementById('ordDeliveryCharge').value) || 0;
     const totalAmount = Math.round((subtotal - discountAmount + deliveryChargeVal) * 100) / 100;
     const cartSummary = `${itemsCount} items, Total: ₹${totalAmount}`;
-    
+
     const orderDate = dateInputVal ? new Date(dateInputVal) : new Date();
     const orderIdPromise = idVal ? Promise.resolve(idVal) : generateLeadId(orderDate, 'order');
-    
+
     orderIdPromise.then((finalId) => {
         const lead = {
             id: finalId,
@@ -4015,7 +4015,7 @@ function saveManualOrder(e) {
             status,
             coupon: ''
         };
-        
+
         const finishSave = () => {
             closeOrderFormModal();
             refreshActiveTab();
@@ -4040,7 +4040,7 @@ function saveManualOrder(e) {
                 if (storedLeads) {
                     try {
                         localLeads = JSON.parse(storedLeads);
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 const idx = localLeads.findIndex(l => l.id === idVal);
                 if (idx !== -1) {
@@ -4069,7 +4069,7 @@ function clearWeekOrders(weekStr) {
                 alert("No orders or leads found for this week.");
                 return;
             }
-            
+
             if (useFirebase && db) {
                 const batch = db.batch();
                 leadsToDelete.forEach(l => {
@@ -4085,7 +4085,7 @@ function clearWeekOrders(weekStr) {
                 if (localLeads) {
                     try {
                         allLeads = JSON.parse(localLeads);
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 allLeads = allLeads.filter(l => getWeekRangeString(l.timestamp) !== weekStr);
                 localStorage.setItem('kshetriva_leads', JSON.stringify(allLeads));
@@ -4106,7 +4106,7 @@ function exportLeadsToCSV() {
             alert("No data available to export.");
             return;
         }
-        
+
         const thStyle = `style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #e8f5e9; border: 1px solid #ccc; padding: 8px; text-align: left;"`;
         const tdStyle = `style="font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #ccc; padding: 8px; text-align: left;"`;
 
@@ -4153,7 +4153,7 @@ function exportLeadsToCSV() {
                 </thead>
                 <tbody>
         `;
-        
+
         leads.forEach(l => {
             let itemsString = "";
             if (l.items && l.items.length > 0) {
@@ -4161,10 +4161,10 @@ function exportLeadsToCSV() {
             } else {
                 itemsString = l.cartSummary || "";
             }
-            
+
             const dateStr = new Date(l.timestamp).toLocaleString('en-IN');
             const displayId = getDisplayLeadId(l, leads);
-            
+
             html += `
                 <tr>
                     <td ${tdStyle}>${displayId}</td>
@@ -4182,24 +4182,24 @@ function exportLeadsToCSV() {
                 </tr>
             `;
         });
-        
+
         html += `
                 </tbody>
             </table>
         </body>
         </html>
         `;
-        
+
         const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        
+
         const link = document.createElement("a");
         link.setAttribute("href", url);
         link.setAttribute("download", `kshetriva_leads_export_${Date.now()}.xls`);
         document.body.appendChild(link);
-        
+
         link.click();
-        
+
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     });
@@ -4211,9 +4211,9 @@ function getDisplayLeadId(lead, allLeads) {
     }
     const leadDate = new Date(lead.timestamp || parseInt(lead.id));
     if (isNaN(leadDate.getTime())) return lead.id; // Fallback
-    
+
     const dateSuffix = getDateSuffix(leadDate);
-    
+
     if (lead.type === 'order') {
         const allOrders = allLeads
             .filter(l => l.type === 'order')
@@ -4222,7 +4222,7 @@ function getDisplayLeadId(lead, allLeads) {
                 const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
                 return timeA - timeB;
             });
-            
+
         const index = allOrders.findIndex(l => l.id === lead.id);
         const seqNum = index !== -1 ? (index + 1) : 1;
         const paddedSeq = String(seqNum).padStart(3, '0');
@@ -4235,7 +4235,7 @@ function getDisplayLeadId(lead, allLeads) {
                 const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
                 return timeA - timeB;
             });
-            
+
         const index = allChats.findIndex(l => l.id === lead.id);
         const seqNum = index !== -1 ? (index + 1) : 1;
         const paddedSeq = String(seqNum).padStart(3, '0');
@@ -4251,7 +4251,7 @@ function exportWeekReportToExcel(weekKey) {
     fetchAllLeads().then((leads) => {
         // Filter orders for the specified week
         const weekOrders = leads.filter(l => l.type === 'order' && getWeekRangeString(l.timestamp) === weekKey);
-        
+
         let pSales = 0;
         let pExpenses = 0;
         Object.values(wData.products).forEach(prod => {
@@ -4260,11 +4260,11 @@ function exportWeekReportToExcel(weekKey) {
         });
         pSales = Math.round(pSales * 100) / 100;
         pExpenses = Math.round(pExpenses * 100) / 100;
-        
+
         const totalDiscount = Math.round((wData.totalDiscount || 0) * 100) / 100;
         const totalDeliveryCharge = Math.round((wData.totalDeliveryCharge || 0) * 100) / 100;
         const netProfit = Math.round((wData.grossSales - wData.expenses) * 100) / 100;
-        
+
         const thStyle = `style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #e8f5e9; border: 1px solid #ccc; padding: 8px; text-align: left;"`;
         const tdStyle = `style="font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #ccc; padding: 8px; text-align: left;"`;
 
@@ -4343,7 +4343,7 @@ function exportWeekReportToExcel(weekKey) {
                 </thead>
                 <tbody>
         `;
-        
+
         Object.keys(wData.products).forEach(pId => {
             const pObj = wData.products[pId];
             const prod = products.find(p => p.id === parseInt(pId));
@@ -4354,11 +4354,11 @@ function exportWeekReportToExcel(weekKey) {
                 displayName = translatedProd.name;
                 displayUnit = translatedProd.unit;
             }
-            
+
             const subtotalSales = Math.round(pObj.totalSales * 100) / 100;
             const subtotalExpense = Math.round(pObj.totalExpense * 100) / 100;
             const profit = Math.round((subtotalSales - subtotalExpense) * 100) / 100;
-            
+
             html += `
                 <tr>
                     <td ${tdStyle}>${displayName}</td>
@@ -4371,7 +4371,7 @@ function exportWeekReportToExcel(weekKey) {
                 </tr>
             `;
         });
-        
+
         const totalProfit = Math.round((pSales - pExpenses) * 100) / 100;
         html += `
                 <tr style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; background-color: #f5f5f5;">
@@ -4405,7 +4405,7 @@ function exportWeekReportToExcel(weekKey) {
             </thead>
             <tbody>
         `;
-        
+
         if (weekOrders.length === 0) {
             html += `<tr><td colspan="8" style="font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #ccc; padding: 8px; text-align: center; color: #777;">No orders logged for this week.</td></tr>`;
         } else {
@@ -4414,7 +4414,7 @@ function exportWeekReportToExcel(weekKey) {
                 const timeB = new Date(b.timestamp || parseInt(b.id)).getTime();
                 return timeA - timeB;
             });
-            
+
             sortedWeekOrders.forEach((o, idx) => {
                 let itemsString = "";
                 if (o.items && o.items.length > 0) {
@@ -4426,7 +4426,7 @@ function exportWeekReportToExcel(weekKey) {
                 const orderDate = new Date(o.timestamp);
                 const dateSuffix = getDateSuffix(orderDate);
                 const displayId = getDisplayLeadId(o, leads);
-                
+
                 html += `
                     <tr>
                         <td ${tdStyle}>${displayId}</td>
@@ -4441,14 +4441,14 @@ function exportWeekReportToExcel(weekKey) {
                 `;
             });
         }
-        
+
         html += `
                 </tbody>
             </table>
         </body>
         </html>
         `;
-        
+
         // Export HTML Blob as warning-compatible Excel file
         const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -4456,7 +4456,7 @@ function exportWeekReportToExcel(weekKey) {
         link.setAttribute("href", url);
         link.setAttribute("download", `kshetriva_weekly_report_${weekKey}.xls`);
         document.body.appendChild(link);
-        
+
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
@@ -4467,7 +4467,7 @@ function refreshActiveTab() {
     const leadsSec = document.getElementById('adminLeadsSection');
     const founderSec = document.getElementById('adminFounderSection');
     const statsSec = document.getElementById('adminCompanyStatsSection');
-    
+
     if (leadsSec && leadsSec.style.display === 'block') {
         renderAdminLeads();
     } else if (founderSec && founderSec.style.display === 'block') {
@@ -4490,11 +4490,11 @@ function getWeekRangeString(dateString) {
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
     const monday = new Date(d.setDate(diff));
     monday.setHours(0, 0, 0, 0);
-    
+
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23, 59, 59, 999);
-    
+
     const format = (dt) => dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     return `${format(monday)} - ${format(sunday)}`;
 }
@@ -4512,7 +4512,7 @@ function generateLeadId(date, type) {
         fetchAllLeads().then((leads) => {
             if (type === 'order') {
                 const allOrders = leads.filter(l => l.type === 'order');
-                
+
                 // Find max sequence number to prevent conflicts (Max + 1 logic across ALL orders)
                 let maxSeq = 0;
                 allOrders.forEach(o => {
@@ -4526,13 +4526,13 @@ function generateLeadId(date, type) {
                         }
                     }
                 });
-                
+
                 const nextSeq = maxSeq + 1;
                 const paddedSeq = String(nextSeq).padStart(3, '0');
                 resolve(`${paddedSeq}_${dateSuffix}`);
             } else {
                 const allChats = leads.filter(l => l.type !== 'order');
-                
+
                 // Find max sequence number for chats (Max + 1 logic across ALL chats)
                 let maxSeq = 0;
                 allChats.forEach(c => {
@@ -4546,7 +4546,7 @@ function generateLeadId(date, type) {
                         }
                     }
                 });
-                
+
                 const nextSeq = maxSeq + 1;
                 const paddedSeq = String(nextSeq).padStart(3, '0');
                 resolve(`${dateSuffix}_${paddedSeq}`);
@@ -4581,41 +4581,41 @@ function getOptionMultiplier(product, optionStr, itemPrice) {
             .replace(/కట్ట/g, 'katta')
             .replace(/కిలో/g, 'kg')
             .replace(/పీస్|పీసెస్/g, 'piece');
-            
+
         const match = opts.find(o => {
             const labelLower = o.label.toLowerCase();
             const valueLower = o.value.toLowerCase();
-            return valueLower === optionStr || 
-                   labelLower === optionStr || 
-                   labelLower === normalized ||
-                   labelLower.includes(normalized) || 
-                   normalized.includes(labelLower);
+            return valueLower === optionStr ||
+                labelLower === optionStr ||
+                labelLower === normalized ||
+                labelLower.includes(normalized) ||
+                normalized.includes(labelLower);
         });
         if (match) return match.multiplier || 1;
     }
-    
+
     // Fallback: If optionStr is empty/missing, check if itemPrice matches any option price
     if (itemPrice) {
         const matchByPrice = opts.find(o => o.price === itemPrice);
         if (matchByPrice) return matchByPrice.multiplier || 1;
-        
+
         // Secondary fallback: approximate multiplier as itemPrice / basePrice
         const basePrice = product.pricePerUnit || parseInt((product.price || '0').replace(/[^\d]/g, ''));
         if (basePrice > 0) {
             return itemPrice / basePrice;
         }
     }
-    
+
     return 1;
 }
 
 function renderCompanyAnalytics() {
     fetchAllLeads().then((leads) => {
         const ordersOnly = leads.filter(l => l.type === 'order');
-        
+
         // Group orders by week
         const weeks = {};
-        
+
         ordersOnly.forEach(o => {
             const weekStr = getWeekRangeString(o.timestamp);
             if (!weeks[weekStr]) {
@@ -4629,22 +4629,22 @@ function renderCompanyAnalytics() {
                     products: {}
                 };
             }
-            
+
             weeks[weekStr].orders.push(o);
             weeks[weekStr].grossSales += o.totalAmount || o.totalSum || 0;
             weeks[weekStr].totalDiscount += o.discountAmount || 0;
             weeks[weekStr].totalDeliveryCharge += o.deliveryCharge || 0;
-            
+
             if (o.items) {
                 o.items.forEach(item => {
                     const prod = products.find(p => p.id === item.id);
                     let baseCostPrice = 0;
                     let multiplier = 1;
                     let itemExpense = 0;
-                    
+
                     const currentWeekStr = getWeekRangeString(new Date().toISOString());
                     const isPreviousWeek = weekStr !== currentWeekStr;
-                    
+
                     if (prod) {
                         multiplier = item.multiplier !== undefined ? item.multiplier : getOptionMultiplier(prod, item.option, item.price);
                         if (item.costPrice !== undefined) {
@@ -4669,9 +4669,9 @@ function renderCompanyAnalytics() {
                         }
                         itemExpense = Math.round(baseCostPrice * item.qty);
                     }
-                    
+
                     weeks[weekStr].expenses += itemExpense;
-                    
+
                     const basePrice = item.pricePerUnit !== undefined ? item.pricePerUnit : (prod ? (prod.pricePerUnit || parseInt((prod.price || '0').replace(/[^\d]/g, ''))) : item.price);
                     if (!weeks[weekStr].products[item.id]) {
                         weeks[weekStr].products[item.id] = {
@@ -4686,30 +4686,30 @@ function renderCompanyAnalytics() {
                             totalExpense: 0
                         };
                     }
-                    
+
                     weeks[weekStr].products[item.id].qty += (item.qty * multiplier);
                     weeks[weekStr].products[item.id].totalSales += item.total || (item.price * item.qty);
                     weeks[weekStr].products[item.id].totalExpense += itemExpense;
                 });
             }
         });
-        
+
         // Calculate All-Time stats
         let allTimeSales = 0;
         let allTimeExpense = 0;
-        
+
         Object.values(weeks).forEach(w => {
             allTimeSales += w.grossSales;
             allTimeExpense += w.expenses;
         });
-        
+
         allTimeSales = Math.round(allTimeSales * 100) / 100;
         allTimeExpense = Math.round(allTimeExpense * 100) / 100;
         const allTimeProfit = Math.round((allTimeSales - allTimeExpense) * 100) / 100;
-        
+
         document.getElementById('statsAllTimeSales').textContent = `₹${allTimeSales}`;
         document.getElementById('statsAllTimeExpense').textContent = `₹${allTimeExpense}`;
-        
+
         const profitEl = document.getElementById('statsAllTimeProfit');
         profitEl.textContent = `₹${Math.abs(allTimeProfit)}`;
         if (allTimeProfit >= 0) {
@@ -4719,12 +4719,12 @@ function renderCompanyAnalytics() {
             profitEl.style.color = '#d32f2f';
             profitEl.parentElement.querySelector('.stat-label').textContent = 'All-Time Loss';
         }
-        
+
         // Render week-wise table
         const tbody = document.getElementById('statsWeekBreakdownList');
         if (!tbody) return;
         tbody.innerHTML = '';
-        
+
         const sortedWeekKeys = Object.keys(weeks).sort((a, b) => {
             const parseDate = (wStr) => {
                 const parts = wStr.split(' - ');
@@ -4732,7 +4732,7 @@ function renderCompanyAnalytics() {
             };
             return parseDate(b) - parseDate(a);
         });
-        
+
         if (sortedWeekKeys.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -4743,22 +4743,22 @@ function renderCompanyAnalytics() {
             `;
             return;
         }
-        
+
         window.statsWeeksData = weeks;
-        
+
         sortedWeekKeys.forEach(wKey => {
             const w = weeks[wKey];
             const tr = document.createElement('tr');
-            
+
             const displayGrossSales = Math.round(w.grossSales * 100) / 100;
             const displayExpenses = Math.round(w.expenses * 100) / 100;
             const profit = Math.round((w.grossSales - w.expenses) * 100) / 100;
             const profitStyle = profit >= 0 ? 'color: var(--primary-color); font-weight: 700;' : 'color: #d32f2f; font-weight: 700;';
             const profitLabel = profit >= 0 ? `₹${profit}` : `-₹${Math.abs(profit)}`;
-            
+
             const isCurrentWeek = w.weekStr === getWeekRangeString(new Date().toISOString());
             const isCompleted = isWeekLocked(w.weekStr, leads);
-            
+
             let statusBadgeHtml = '';
             if (isCurrentWeek) {
                 statusBadgeHtml = `<span style="display: inline-block; background: rgba(46,125,50,0.1); color: var(--primary-color); border: 1px solid rgba(46,125,50,0.2); padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">Present</span>`;
@@ -4767,7 +4767,7 @@ function renderCompanyAnalytics() {
             } else {
                 statusBadgeHtml = `<span style="display: inline-block; background: rgba(245,124,0,0.1); color: var(--accent-color); border: 1px solid rgba(245,124,0,0.2); padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">Incomplete</span>`;
             }
-            
+
             const clearBtnHtml = isCompleted
                 ? `<button class="btn btn-secondary" disabled style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px; opacity: 0.5; cursor: not-allowed; margin-left: 5px;" title="Completed weeks are locked">
                        <i class="fa-solid fa-lock"></i> Clear
@@ -4775,7 +4775,7 @@ function renderCompanyAnalytics() {
                 : `<button class="btn btn-secondary" onclick="clearWeekOrders('${w.weekStr}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px; border: 1.5px solid #d32f2f; color: #d32f2f; background: transparent; margin-left: 5px;">
                        <i class="fa-solid fa-trash-can"></i> Clear
                    </button>`;
-            
+
             tr.innerHTML = `
                 <td style="font-weight: 600; color: var(--text-dark);">${w.weekStr}${statusBadgeHtml}</td>
                 <td>${w.orders.length}</td>
@@ -4800,21 +4800,21 @@ function viewWeekDetails(weekKey) {
     const container = document.getElementById('weekDetailsContainer');
     const title = document.getElementById('weekDetailsTitle');
     const tbody = document.getElementById('weekDetailsProductsList');
-    
+
     if (!container || !title || !tbody || !window.statsWeeksData) return;
-    
+
     const wData = window.statsWeeksData[weekKey];
     if (!wData) return;
-    
+
     title.textContent = `Product Sales & Profits Breakdown: Week of ${weekKey}`;
-    
+
     const exportBtn = document.getElementById('btnExportWeekExcel');
     if (exportBtn) {
         exportBtn.onclick = () => exportWeekReportToExcel(weekKey);
     }
-    
+
     tbody.innerHTML = '';
-    
+
     const pKeys = Object.keys(wData.products);
     if (pKeys.length === 0) {
         tbody.innerHTML = `
@@ -4828,11 +4828,11 @@ function viewWeekDetails(weekKey) {
         container.scrollIntoView({ behavior: 'smooth' });
         return;
     }
-    
+
     pKeys.forEach(pId => {
         const pObj = wData.products[pId];
         const prod = products.find(p => p.id === parseInt(pId));
-        
+
         let displayName = pObj.name;
         let displayUnit = pObj.unit;
         if (prod) {
@@ -4840,16 +4840,16 @@ function viewWeekDetails(weekKey) {
             displayName = translatedProd.name;
             displayUnit = translatedProd.unit;
         }
-        
+
         const tr = document.createElement('tr');
-        
+
         const displayTotalSales = Math.round(pObj.totalSales * 100) / 100;
         const displayTotalExpense = Math.round(pObj.totalExpense * 100) / 100;
         const netProfit = Math.round((pObj.totalSales - pObj.totalExpense) * 100) / 100;
         const profitStyle = netProfit >= 0 ? 'color: var(--primary-color); font-weight: 600;' : 'color: #d32f2f; font-weight: 600;';
         const profitLabel = netProfit >= 0 ? `₹${netProfit}` : `-₹${Math.abs(netProfit)}`;
         const formattedQty = Math.round(pObj.qty * 100) / 100;
-        
+
         tr.innerHTML = `
             <td style="font-weight: 600; color: var(--text-dark);">${displayName}</td>
             <td>${formattedQty} ${displayUnit}</td>
@@ -4870,7 +4870,7 @@ function viewWeekDetails(weekKey) {
         `;
         tbody.appendChild(tr);
     });
-    
+
     // Calculate and render weekly summary cards
     let pSales = 0;
     let pExpenses = 0;
@@ -4883,12 +4883,12 @@ function viewWeekDetails(weekKey) {
     const totalDiscount = Math.round((wData.totalDiscount || 0) * 100) / 100;
     const totalDeliveryCharge = Math.round((wData.totalDeliveryCharge || 0) * 100) / 100;
     const netProfit = Math.round((wData.grossSales - wData.expenses) * 100) / 100;
-    
+
     const summaryContainer = document.getElementById('weekDetailsSummary');
     if (summaryContainer) {
         const netProfitStyle = netProfit >= 0 ? 'color: var(--primary-color); font-weight: 700;' : 'color: #d32f2f; font-weight: 700;';
         const netProfitLabel = netProfit >= 0 ? `₹${netProfit}` : `-₹${Math.abs(netProfit)}`;
-        
+
         summaryContainer.innerHTML = `
             <div style="text-align: center; border-right: 1px solid #eee; padding: 10px;">
                 <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: 600;">Products Subtotal</div>
@@ -4912,7 +4912,7 @@ function viewWeekDetails(weekKey) {
             </div>
         `;
     }
-    
+
     container.style.display = 'block';
     container.scrollIntoView({ behavior: 'smooth' });
 }
@@ -4921,39 +4921,39 @@ function saveWeekProductPrices(weekKey, productId, btnEl) {
     const costInput = document.getElementById(`inputWeekCost_${weekKey}_${productId}`);
     const sellInput = document.getElementById(`inputWeekSell_${weekKey}_${productId}`);
     if (!costInput || !sellInput) return;
-    
+
     const newCost = parseInt(costInput.value) || 0;
     const newSell = parseInt(sellInput.value) || 0;
-    
+
     fetchAllLeads().then((leads) => {
         const weekOrders = leads.filter(l => l.type === 'order' && getWeekRangeString(l.timestamp) === weekKey);
         const ordersToUpdate = weekOrders.filter(o => o.items && o.items.some(item => item.id === productId));
-        
+
         if (ordersToUpdate.length === 0) {
             alert("No orders containing this product found in this week.");
             return;
         }
-        
+
         ordersToUpdate.forEach(o => {
             let orderTotalDiff = 0;
             o.items.forEach(item => {
                 if (item.id === productId) {
                     item.costPrice = newCost;
-                    
+
                     const oldItemTotal = item.total || (item.price * item.qty);
                     const prod = products.find(p => p.id === productId);
                     const multiplier = item.multiplier !== undefined ? item.multiplier : (prod ? getOptionMultiplier(prod, item.option, item.price) : 1);
-                    
+
                     const newOptionPrice = Math.round(newSell * multiplier);
                     item.price = newOptionPrice;
                     item.total = newOptionPrice * item.qty;
                     item.pricePerUnit = newSell;
-                    
+
                     orderTotalDiff += (item.total - oldItemTotal);
                 }
             });
             o.totalAmount = Math.round((o.totalAmount + orderTotalDiff) * 100) / 100;
-            
+
             if (o.cartSummary) {
                 const parts = o.cartSummary.split(', Total: ₹');
                 if (parts.length === 2) {
@@ -4961,7 +4961,7 @@ function saveWeekProductPrices(weekKey, productId, btnEl) {
                 }
             }
         });
-        
+
         if (useFirebase && db) {
             const batch = db.batch();
             ordersToUpdate.forEach(o => {
@@ -4977,7 +4977,7 @@ function saveWeekProductPrices(weekKey, productId, btnEl) {
             if (localLeads) {
                 try {
                     allLeads = JSON.parse(localLeads);
-                } catch (e) {}
+                } catch (e) { }
             }
             ordersToUpdate.forEach(updatedOrder => {
                 const idx = allLeads.findIndex(l => l.id === updatedOrder.id);
