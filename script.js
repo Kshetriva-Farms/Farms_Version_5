@@ -2073,14 +2073,90 @@ if (detailsForm) {
             coupon
         };
         
-        // Save the lead asynchronously in the background so Safari doesn't block the synchronous redirect below
-        saveLeadToDatabase(lead);
-        if (detailsModal) detailsModal.classList.remove('open');
-        if (type === 'order') {
-            sendCartWhatsAppOrder(name, phone, area, waWindow);
-        } else {
-            sendChatWhatsAppMessage(name, phone, area, waWindow);
+        if (waWindow) {
+            try {
+                waWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Kshetriva Farms</title>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body {
+                                font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                height: 100vh;
+                                margin: 0;
+                                background-color: #f4f7f5;
+                                color: #2e7d32;
+                                text-align: center;
+                                padding: 20px;
+                                box-sizing: border-box;
+                            }
+                            .loader-container {
+                                background: white;
+                                padding: 40px;
+                                border-radius: 24px;
+                                box-shadow: 0 10px 30px rgba(46,125,50,0.08);
+                                border: 1px solid #e1ebe5;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                max-width: 360px;
+                            }
+                            .spinner {
+                                width: 48px;
+                                height: 48px;
+                                border: 5px solid #e8f5e9;
+                                border-top: 5px solid #2e7d32;
+                                border-radius: 50%;
+                                animation: spin 1s linear infinite;
+                                margin-bottom: 24px;
+                            }
+                            h2 {
+                                margin: 0 0 10px 0;
+                                font-size: 1.4rem;
+                                font-weight: 700;
+                            }
+                            p {
+                                margin: 0;
+                                color: #666;
+                                font-size: 0.95rem;
+                                line-height: 1.5;
+                            }
+                            @keyframes spin {
+                                0% { transform: rotate(0deg); }
+                                100% { transform: rotate(360deg); }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="loader-container">
+                            <div class="spinner"></div>
+                            <h2>Connecting to WhatsApp...</h2>
+                            <p>Saving your details to confirm your order.</p>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                waWindow.document.close();
+            } catch (err) {
+                console.error("Failed to write loader to waWindow:", err);
+            }
         }
+        
+        if (detailsModal) detailsModal.classList.remove('open');
+        
+        // Wait for database saving callback to complete before redirecting (prevents mobile unload aborts)
+        saveLeadToDatabase(lead, () => {
+            if (type === 'order') {
+                sendCartWhatsAppOrder(name, phone, area, waWindow);
+            } else {
+                sendChatWhatsAppMessage(name, phone, area, waWindow);
+            }
+        });
     });
 }
 
@@ -2488,7 +2564,7 @@ function renderAdminLeads() {
         if (!leadsList || leadsList.length === 0) {
             listContainer.innerHTML = `
                 <tr>
-                    <td colspan="7" style="text-align: center; color: #888; padding: 30px;">
+                    <td colspan="8" style="text-align: center; color: #888; padding: 30px;">
                         <i class="fa-solid fa-users-slash" style="font-size: 2rem; margin-bottom: 10px; display: block; color: var(--primary-color);"></i>
                         No customer leads registered yet.
                     </td>
@@ -2508,6 +2584,7 @@ function renderAdminLeads() {
                 minute: '2-digit'
             });
             
+            const displayId = getDisplayLeadId(lead, leadsList);
             const badgeClass = lead.type === 'order' ? 'order' : 'chat';
             const badgeLabel = lead.type === 'order' ? 'Order' : 'Chat';
             
@@ -2543,6 +2620,7 @@ function renderAdminLeads() {
             }
             
             tr.innerHTML = `
+                <td style="font-size: 0.85rem; font-weight: bold; color: var(--primary-color); white-space: nowrap;">${displayId}</td>
                 <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
                 <td style="font-weight: 600; color: var(--text-dark);">${lead.name}</td>
                 <td>
@@ -2837,6 +2915,7 @@ function renderAdminWindowLogs() {
             const stateLabel = log.state === "open" ? "Open" : "Closed";
 
             tr.innerHTML = `
+                <td style="font-size: 0.85rem; font-weight: bold; color: var(--primary-color); white-space: nowrap;">${displayId}</td>
                 <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
                 <td>
                     <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -3493,6 +3572,10 @@ function renderFounderInsights() {
         // Update Stats UI
         document.getElementById('founderRevenueVal').textContent = `₹${grossSales}`;
         document.getElementById('founderOrdersVal').textContent = totalOrders;
+        const weekOrdersEl = document.getElementById('founderWeekOrdersVal');
+        if (weekOrdersEl) {
+            weekOrdersEl.textContent = presentWeekCount;
+        }
         
         // Calculate leaderboard for present week only
         const currentWeekStr = getWeekRangeString(new Date().toISOString());
@@ -3551,6 +3634,7 @@ function renderFounderInsights() {
             }
             
             tr.innerHTML = `
+                <td style="font-size: 0.85rem; font-weight: bold; color: var(--primary-color); white-space: nowrap;">${displayId}</td>
                 <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
                 <td>
                     <div style="font-weight: 600; color: var(--text-dark);">${o.name}</div>
@@ -4122,6 +4206,9 @@ function exportLeadsToCSV() {
 }
 
 function getDisplayLeadId(lead, allLeads) {
+    if (lead.id && lead.id.includes('_')) {
+        return lead.id;
+    }
     const leadDate = new Date(lead.timestamp || parseInt(lead.id));
     if (isNaN(leadDate.getTime())) return lead.id; // Fallback
     
@@ -4338,7 +4425,7 @@ function exportWeekReportToExcel(weekKey) {
                 const dateStr = new Date(o.timestamp).toLocaleString('en-IN');
                 const orderDate = new Date(o.timestamp);
                 const dateSuffix = getDateSuffix(orderDate);
-                const displayId = `${String(idx + 1).padStart(3, '0')}_${dateSuffix}`;
+                const displayId = getDisplayLeadId(o, leads);
                 
                 html += `
                     <tr>
@@ -4408,7 +4495,7 @@ function getWeekRangeString(dateString) {
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23, 59, 59, 999);
     
-    const format = (dt) => dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    const format = (dt) => dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     return `${format(monday)} - ${format(sunday)}`;
 }
 
@@ -4641,7 +4728,7 @@ function renderCompanyAnalytics() {
         const sortedWeekKeys = Object.keys(weeks).sort((a, b) => {
             const parseDate = (wStr) => {
                 const parts = wStr.split(' - ');
-                return new Date(parts[0] + `, ${new Date().getFullYear()}`);
+                return new Date(parts[0]);
             };
             return parseDate(b) - parseDate(a);
         });
@@ -5018,135 +5105,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// ==========================================================================
-// Phase 3: Interactive Order Progress Tracking Portal logic
-// ==========================================================================
-
-function openTrackOrderModal(e) {
-    if (e) e.preventDefault();
-    const modal = document.getElementById('trackOrderModal');
-    if (modal) {
-        modal.classList.add('open');
-        
-        // Auto pre-populate with user's most recent order code if exists
-        const myOrders = JSON.parse(localStorage.getItem('kshetriva_my_orders') || '[]');
-        if (myOrders.length > 0) {
-            document.getElementById('trackInput').value = myOrders[myOrders.length - 1];
-            trackOrderQuery(); // Auto search
-        }
-        document.getElementById('trackInput').focus();
-    }
-}
-
-function closeTrackOrderModal() {
-    const modal = document.getElementById('trackOrderModal');
-    if (modal) {
-        modal.classList.remove('open');
-    }
-    // Unsubscribe from active real-time queries to save resources
-    if (typeof activeTrackListener === 'function') {
-        activeTrackListener();
-        activeTrackListener = null;
-    }
-}
-
-function trackOrderQuery() {
-    const inputVal = document.getElementById('trackInput').value.trim();
-    const errorEl = document.getElementById('trackErrorMsg');
-    const containerEl = document.getElementById('trackResultContainer');
-    if (!inputVal) return;
-
-    errorEl.style.display = 'none';
-
-    // Unsubscribe previous tracking listener
-    if (typeof activeTrackListener === 'function') {
-        activeTrackListener();
-        activeTrackListener = null;
-    }
-
-    if (useFirebase && db) {
-        // Query live Firestore document with active snapshot listener
-        activeTrackListener = db.collection("orders").doc(inputVal).onSnapshot((doc) => {
-            if (doc.exists) {
-                renderTimelineProgress(doc.data());
-            } else {
-                containerEl.style.display = 'none';
-                errorEl.style.display = 'block';
-            }
-        }, (error) => {
-            console.error("Firestore tracking listener exception:", error);
-            errorEl.style.display = 'block';
-        });
-    } else {
-        // Offline sandbox local storage tracker query
-        const queryLocal = () => {
-            const localOrders = JSON.parse(localStorage.getItem('kshetriva_mithra_orders') || '[]');
-            const order = localOrders.find(o => o.id === inputVal);
-            if (order) {
-                renderTimelineProgress(order);
-            } else {
-                containerEl.style.display = 'none';
-                errorEl.style.display = 'block';
-            }
-        };
-
-        queryLocal();
-
-        // Listen for storage updates in local fallback mode
-        const onLocalStorageUpdate = (e) => {
-            if (e.key === 'kshetriva_mithra_orders_update' || e.key === 'kshetriva_mithra_orders') {
-                queryLocal();
-            }
-        };
-        window.addEventListener('storage', onLocalStorageUpdate);
-
-        activeTrackListener = () => {
-            window.removeEventListener('storage', onLocalStorageUpdate);
-        };
-    }
-}
-
-function renderTimelineProgress(order) {
-    const containerEl = document.getElementById('trackResultContainer');
-    const resultIdEl = document.getElementById('trackResultId');
-    const resultDateEl = document.getElementById('trackResultDate');
-    const resultTotalEl = document.getElementById('trackResultTotal');
-    const fillEl = document.getElementById('timelineFill');
-
-    resultIdEl.textContent = order.id;
-    resultDateEl.textContent = order.date;
-    resultTotalEl.textContent = `₹${order.totalSum}`;
-
-    containerEl.style.display = 'block';
-
-    const steps = ['harvesting', 'packed', 'delivery', 'delivered'];
-    const currentStatus = order.status || 'harvesting';
-    const activeIndex = steps.indexOf(currentStatus);
-
-    steps.forEach((step, idx) => {
-        const stepEl = document.getElementById(`step-${step}`);
-        if (stepEl) {
-            stepEl.classList.remove('completed', 'active');
-            if (idx < activeIndex) {
-                stepEl.classList.add('completed');
-            } else if (idx === activeIndex) {
-                stepEl.classList.add('active');
-            }
-        }
-    });
-
-    // Calculate progress line percentage fill
-    let fillPct = 0;
-    if (activeIndex > 0) {
-        fillPct = (activeIndex / (steps.length - 1)) * 100;
-    }
-
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-        fillEl.style.width = '4px';
-        fillEl.style.height = `${fillPct}%`;
-    } else {
-        fillEl.style.height = '4px';
-        fillEl.style.width = `${fillPct}%`;
-    }
-}
