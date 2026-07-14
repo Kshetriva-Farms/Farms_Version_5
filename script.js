@@ -3462,6 +3462,10 @@ if (useFirebase && auth) {
 
 // ===== Phase 3: Coupon Code Option =====
 let appliedCoupon = localStorage.getItem('kshetriva_coupon') || '';
+if (appliedCoupon === 'Delivery30') {
+    appliedCoupon = '';
+    localStorage.removeItem('kshetriva_coupon');
+}
 
 function initCouponLogic() {
     const couponInput = document.getElementById('couponInput');
