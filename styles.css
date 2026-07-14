@@ -598,7 +598,7 @@ footer {
 }
 
 .footer-col ul li a:hover {
-  color: var(--primary-color);
+  color: #a5d6a7; /* Light green for WCAG AA contrast compliance on dark background */
 }
 
 .social-links {
@@ -625,7 +625,7 @@ footer {
   text-align: center;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  color: #aaa;
+  color: #ccc; /* Improved contrast for accessibility compliance */
 }
 
 /* WhatsApp Floating Button */
@@ -2519,7 +2519,7 @@ footer {
 
 .blog-hero {
   position: relative;
-  background: linear-gradient(135deg, rgba(46, 125, 50, 0.95), rgba(93, 64, 55, 0.9)), url('images/about_farm_wide.png') no-repeat center center;
+  background: linear-gradient(135deg, rgba(46, 125, 50, 0.95), rgba(93, 64, 55, 0.9)), url('images/about_farm_wide.webp') no-repeat center center;
   background-size: cover;
   color: white;
   padding: 80px 0 60px;

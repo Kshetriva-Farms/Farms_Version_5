@@ -45,9 +45,6 @@
     <!-- Early Handshake CDN Preconnects -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
     <!-- Google Fonts -->
     <link
@@ -135,11 +132,11 @@
                     <span class="lang-option" id="langOptTe">TE</span>
                     <div class="lang-slider"></div>
                 </div>
-                <button class="cart-btn" id="cartBtn" title="View Cart">
+                <button class="cart-btn" id="cartBtn" title="View Cart" aria-label="View Shopping Basket">
                     <i class="fa-solid fa-shopping-basket"></i>
                     <span class="cart-badge" id="cartBadge">0</span>
                 </button>
-                <button class="mobile-menu-btn" id="mobileBtn">
+                <button class="mobile-menu-btn" id="mobileBtn" aria-label="Toggle Navigation Menu">
                     <i class="fa-solid fa-bars"></i>
                 </button>
             </div>
@@ -169,11 +166,11 @@
     <section class="about" id="about">
         <div class="container about-content">
             <div class="about-image">
-                <img src="images/about_farm_wide.png" alt="Farmers Working in Kshetriva Farm" width="560" height="315"
+                <img src="images/about_farm_wide.webp" alt="Farmers Working in Kshetriva Farm" width="560" height="315"
                     loading="lazy">
             </div>
             <div class="about-text">
-                <h3 class="section-title" style="text-align: left;">About Kshetriva Farms</h3>
+                <h2 class="section-title" style="text-align: left;">About Kshetriva Farms</h2>
                 <p><strong>Direct Farm-to-Home Delivery:</strong> We bridge the gap between hardworking farmers and your
                     kitchen table, cutting out the middlemen to ensure you get the freshest produce possible.</p>
                 <p><strong>Fresh & Chemical-Safe:</strong> Our vegetables are grown with care, ensuring they are safe,
@@ -423,17 +420,17 @@
                         <li style="margin-bottom: 10px;"><i class="fa-solid fa-phone"></i> +91 83742 76995</li>
                         <li style="margin-bottom: 10px;"><i class="fa-solid fa-phone"></i> +91 90148 33202</li>
                         <li style="margin-bottom: 10px;"><a href="mailto:farm@kshetrivafarms.com" id="emailContactBtn"
-                                style="margin-right: 8px;"><i class="fa-solid fa-envelope"></i></a>
+                                style="margin-right: 8px;" aria-label="Send Email"><i class="fa-solid fa-envelope"></i></a>
                             farm@kshetrivafarms.com</li>
                         <li style="margin-bottom: 10px;"><a href="https://maps.app.goo.gl/3hkokYQueuyNkXwh9"
-                                target="_blank" style="margin-right: 8px;"><i class="fa-solid fa-location-dot"></i></a>
+                                target="_blank" style="margin-right: 8px;" aria-label="View Location on Google Maps"><i class="fa-solid fa-location-dot"></i></a>
                             H no. 5-134, Maryala, Bommalaramaram, Telangana - 508116, India</li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h4>Follow Us</h4>
                     <div class="social-links">
-                        <a href="https://www.instagram.com/kshetrivafarms?igsh=dGV5d3I2d2Rhc2t2" target="_blank"><i
+                        <a href="https://www.instagram.com/kshetrivafarms?igsh=dGV5d3I2d2Rhc2t2" target="_blank" aria-label="Follow us on Instagram"><i
                                 class="fa-brands fa-instagram"></i></a>
                     </div>
                 </div>
@@ -450,14 +447,14 @@
     </footer>
 
     <!-- Floating Cart Button -->
-    <button class="cart-float" id="cartFloatBtn" title="View Basket">
+    <button class="cart-float" id="cartFloatBtn" title="View Basket" aria-label="View Shopping Basket">
         <i class="fa-solid fa-shopping-basket"></i>
         <span class="cart-badge-float" id="cartBadgeFloat">0</span>
     </button>
 
     <!-- WhatsApp Floating Button -->
     <a href="https://wa.me/918374276995?text=Hello%20Kshetriva%20Farms,%20I%20want%20to%20place%20an%20order."
-        class="whatsapp-float" target="_blank">
+        class="whatsapp-float" target="_blank" aria-label="Chat with us on WhatsApp">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
 
@@ -467,7 +464,7 @@
             <h3><i class="fa-solid fa-shopping-basket"></i> Your Basket</h3>
             <div class="cart-header-actions">
                 <button class="clear-cart-btn" id="clearCartBtn" onclick="clearCart()">Clear All</button>
-                <button class="close-cart-btn" id="closeCartBtn">&times;</button>
+                <button class="close-cart-btn" id="closeCartBtn" aria-label="Close Shopping Basket">&times;</button>
             </div>
         </div>
         <div class="cart-drawer-items" id="cartDrawerItems">
@@ -610,7 +607,7 @@
     <div class="admin-login-modal" id="whatsappDetailsModal" style="z-index: 3000;">
         <div class="admin-login-content"
             style="max-width: 450px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); position: relative;">
-            <button class="close-admin-login" id="closeDetailsModalBtn"
+            <button class="close-admin-login" id="closeDetailsModalBtn" aria-label="Close Modal"
                 style="top: 15px; right: 15px; background: none; border: none; font-size: 1.8rem; cursor: pointer;">&times;</button>
             <div style="text-align: center; margin-bottom: 20px;">
                 <div

@@ -1246,7 +1246,7 @@ function renderProducts(category = 'all') {
                 <h4 class="product-title">${product.name}</h4>
                 <p class="dynamic-price" id="price-${product.id}">₹${selectedPrice}</p>
                 <div class="qty-dropdown-wrap">
-                    <select class="qty-weight-select" id="opt-${product.id}" onchange="onVariantChange(${product.id})" ${isOutOfStock ? 'disabled' : ''}>
+                    <select class="qty-weight-select" id="opt-${product.id}" onchange="onVariantChange(${product.id})" aria-label="Select weight variant" ${isOutOfStock ? 'disabled' : ''}>
                         ${optionsHtml}
                     </select>
                     ${tooltipHtml}
