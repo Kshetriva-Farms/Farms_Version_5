@@ -462,7 +462,22 @@ For queries, orders, or partner programs:
 - **Direct App Redirection on Mobile:** Detected mobile devices using user-agent checks and viewport limits. On mobile devices, WhatsApp checkout and chat links now redirect in the same tab using `window.location.href`. This invokes the OS deep-link handler to open the native WhatsApp application directly without spawning empty browser tabs or redirecting to the WhatsApp Web page.
 - **Orphan Tab Prevention:** Disabled the creation of synchronous blank tabs on mobile devices because `window.location.href` modifications are not subject to browser popup blockers. Desktop devices continue using the secure blank tab bypass to keep the store website open in the user's primary tab.
 
+### 🗓️ July 14, 2026
 
+#### 1. 💬 WhatsApp Lead Saving & Callback Integration
+- **Database Write Guarantee:** Refactored the lead submission workflow (`saveLeadToDatabase`) to enforce callback validation. The app now successfully registers and completes the Firestore database write callback (or localStorage write queue) before triggering the WhatsApp chat/order redirection.
+- **Race Condition Prevention:** Resolves a critical race condition on mobile devices where rapid browser tab redirects or page unloads aborted pending database updates before they could write successfully to the cloud.
 
+#### 2. ⚡ Accessibility & PageSpeed Performance Optimizations
+- **WCAG AA Compliance:** Adjusted the color contrast values of footer element links (`#a5d6a7`) and copyright texts (`#ccc`) to meet accessibility color requirements against dark backgrounds.
+- **Aria Labeling:** Added explicit `aria-label` tags to interactive drawer toggles, close buttons, and social anchors to improve screen-reader accessibility.
+- **Payload Compression:** Replaced legacy `.png` assets in CSS backgrounds (`about_farm_wide.png`) with compressed `.webp` formats (`about_farm_wide.webp`) to optimize rendering speeds.
+- **Code Optimization:** Pruned redundant CDNs and script preconnect requests to improve initial PageSpeed index scores.
 
-
+#### 3. 🛒 Cart Rules, Basket Tiers, and Promotion Coupon Update
+- **Volume Basket Tier Re-alignment:** Adjusted the minimum product item counts required to trigger automatic cart volume discount tiers:
+  - **Small Basket** (5% off): increased threshold to **6 unique items** (formerly 5).
+  - **Medium Basket** (10% off): increased threshold to **10 unique items** (formerly 8).
+  - **Large Basket** (15% off): increased threshold to **14 unique items** (formerly 11).
+- **Promo Coupon Migration:** Renamed the standard delivery promo coupon from `Delivery30` to `Delivery@30`.
+- **Stale Cache Cleanup:** Added a startup script routine that automatically clears legacy `Delivery30` coupon parameters from local storage on bootstrap, preventing users from checking out with expired or incorrect coupon codes.
