@@ -9,7 +9,7 @@
 
 Kshetriva Farms is a premium, high-performance single-page web application designed to connect hardworking local farmers from **Maryala, Telangana** directly with urban families. By eliminating middle-men, the platform ensures that families receive fresh, chemical-safe vegetables at fair prices, while local growers earn a sustainable, direct-to-consumer income.
 
-In **Version 4.7**, the platform has matured into a comprehensive **Business Administration and Customer Portal** adding **historical weekly price/cost decoupling**, a **unified weekly price/cost editor**, client-side **styled weekly Excel exporting**, **Telugu localization matching fixes** for unit multipliers, and **sequential date-based order ID generation** (e.g. `014_02072026`).
+In **Version 5.0**, the platform has matured into a comprehensive **Business Administration and Customer Portal** adding **Premium DM Serif typography**, **circular category explore badges with zoom/lift micro-animations**, **Firebase Customer Account Authentication (with profile views and smart checkout autofill)**, **Hybrid Payment integrations (supporting COD, dynamic UPI scan-to-pay QR codes, and direct app intent launching)**, **Firestore manual ordering window override controls**, and **localhost service worker developer cache-bypassing**.
 
 ---
 
@@ -481,3 +481,27 @@ For queries, orders, or partner programs:
   - **Large Basket** (15% off): increased threshold to **14 unique items** (formerly 11).
 - **Promo Coupon Migration:** Renamed the standard delivery promo coupon from `Delivery30` to `Delivery@30`.
 - **Stale Cache Cleanup:** Added a startup script routine that automatically clears legacy `Delivery30` coupon parameters from local storage on bootstrap, preventing users from checking out with expired or incorrect coupon codes.
+
+### 🗓️ July 16, 2026
+
+#### 1. 🎨 Premium Typography, Layout & Circular Badges (Version 5.0)
+- **Serif Fonts**: Connected Google Font `DM Serif Display` inside `index.html` and configured serif variables inside `styles.css` for headings.
+- **Circular Explore Badges**: Overhauled category filters into premium circular explore badges showing crop crop pictures with hover-lift scale zoom transitions.
+- **Header Avatar Controls**: Added a dedicated user account toggle (`#accountBtn`) in the fixed header bar.
+
+#### 2. 🔐 Customer Authentication & Profiles (Version 5.0)
+- **Unified Authentication Panel**: Designed a modal (`#customerAuthModal`) supporting **Sign In**, **Registration**, and **Profile View** cards.
+- **Autofill Checkout Details**: Synced profiles to Firestore `/users` collection and `sessionStorage`. Customer delivery details auto-populate into checkout inputs upon checkout.
+- **Sign-Out Tab Display Fix**: Resolved a visual state bug where profile details leaked under registration forms on signout by introducing `renderCustomerAuthModalContent()` to reactively control UI states.
+
+#### 3. 💳 Hybrid Payments & UPI Intent Flows (Version 5.0)
+- **Payment Selector**: Integrated COD and UPI Online Payment options inside the checkout details form.
+- **Scan-to-Pay QR Codes**: Generates dynamic scan-to-pay QR codes for desktop checkouts using a free public API.
+- **UPI Intent Link Launching**: Automatically deep-links direct UPI pay intents on mobile checkouts (`upi://pay`).
+- **Audit Verification IDs**: Requires customers to provide a 12-digit UPI transaction reference ID before completing online checkouts.
+- **General Chat Visibility Guard**: Hidden payment selectors and QR code generation panels completely when opening the details form via the floating WhatsApp button (general enquiries/chats) instead of the cart checkout.
+
+#### 4. 🎛️ Manual Ordering Window Override & Dev Caching Fixes (Version 5.0)
+- **Optimistic UI Controls**: Added optimistic UI state rendering directly inside settings toggle event handlers to bypass database sync latencies.
+- **Local Service Worker Bypass**: Configured service worker updates to bypass and unregister when running on `localhost` or `127.0.0.1` to prevent development file caching conflicts.
+

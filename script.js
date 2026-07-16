@@ -13,6 +13,7 @@ let db = null;
 let auth = null;
 let useFirebase = false;
 let activeTrackListener = null;
+let currentCustomer = null; // Stores logged-in customer profile information
 
 // GA4 Custom Telemetry Helper
 function trackGA4Event(eventName, eventParams = {}) {
@@ -851,12 +852,14 @@ function applyLanguage() {
     const filterBtnsEl = document.querySelectorAll('.category-filter .filter-btn');
     filterBtnsEl.forEach(btn => {
         const filter = btn.getAttribute('data-filter');
-        if (filter === 'all') btn.textContent = dict.filterAll;
-        else if (filter === 'leafy') btn.textContent = dict.filterLeafy;
-        else if (filter === 'root') btn.textContent = dict.filterRoot;
-        else if (filter === 'seasonal') btn.textContent = dict.filterSeasonal;
-        else if (filter === 'vegetables') btn.textContent = dict.filterOrganic;
-        else if (filter === 'fruits') btn.textContent = dict.filterFruits;
+        const labelEl = btn.querySelector('.circle-label');
+        const targetEl = labelEl ? labelEl : btn;
+        if (filter === 'all') targetEl.textContent = dict.filterAll;
+        else if (filter === 'leafy') targetEl.textContent = dict.filterLeafy;
+        else if (filter === 'root') targetEl.textContent = dict.filterRoot;
+        else if (filter === 'seasonal') targetEl.textContent = dict.filterSeasonal;
+        else if (filter === 'vegetables') targetEl.textContent = dict.filterOrganic;
+        else if (filter === 'fruits') targetEl.textContent = dict.filterFruits;
     });
 
     // Farmers Titles
@@ -1795,7 +1798,7 @@ if (cancelConfirmBtn && acceptConfirmBtn) {
 }
 
 // WhatsApp Cart Checkout Order compilation — Phase 1: Enhanced with basket/discount
-function sendCartWhatsAppOrder(name, phone, area, waWindow) {
+function sendCartWhatsAppOrder(name, phone, area, waWindow, paymentMethod = 'cod', upiRefId = '') {
     const cartKeys = Object.keys(cart);
     if (cartKeys.length === 0) {
         if (waWindow) waWindow.close();
@@ -1896,7 +1899,14 @@ function sendCartWhatsAppOrder(name, phone, area, waWindow) {
     }
 
     message += `📅 ${isTe ? 'డెలివరీ:' : 'Delivery:'} ${dict.waDeliveryDay}\n`;
-    message += `💳 ${isTe ? 'చెల్లింపు:' : 'Payment:'} ${dict.waPayment}\n\n`;
+    
+    let paymentText = "";
+    if (paymentMethod === 'upi') {
+        paymentText = isTe ? `UPI ఆన్‌లైన్ పేమెంట్ (లావాదేవీ Ref ID: ${upiRefId})` : `UPI Paid Online (Transaction Ref ID: ${upiRefId})`;
+    } else {
+        paymentText = isTe ? `క్యాష్ ఆన్ డెలివరీ (COD)` : `Cash on Delivery (COD)`;
+    }
+    message += `💳 ${isTe ? 'చెల్లింపు:' : 'Payment:'} ${paymentText}\n\n`;
     message += isTe ? `_డెలివరీ చిరునామా వివరాలు ఇక్కడ షేర్ చేయబడతాయి._` : `_Delivery address details will be shared._`;
 
     trackGA4Event('whatsapp_order_checkout', {
@@ -1986,6 +1996,11 @@ if (detailsForm) {
         const area = document.getElementById('custArea').value.trim();
         if (!name || !phone || !area) return;
 
+        // Payment fields
+        const paymentMethodEl = document.querySelector('input[name="paymentMethod"]:checked');
+        const paymentMethod = paymentMethodEl ? paymentMethodEl.value : 'cod';
+        const upiRefIdVal = document.getElementById('upiRefId') ? document.getElementById('upiRefId').value.trim() : '';
+
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
         // Open a blank window synchronously in the user gesture thread to bypass popup blocker (desktop only)
         const waWindow = isMobile ? null : window.open('', '_blank');
@@ -2070,7 +2085,10 @@ if (detailsForm) {
             discountAmount,
             deliveryCharge,
             status,
-            coupon
+            coupon,
+            paymentMethod,
+            upiRefId: upiRefIdVal,
+            customerUid: currentCustomer ? currentCustomer.uid : 'guest'
         };
 
         if (waWindow) {
@@ -2152,7 +2170,7 @@ if (detailsForm) {
         // Wait for database saving callback to complete before redirecting (prevents mobile unload aborts)
         saveLeadToDatabase(lead, () => {
             if (type === 'order') {
-                sendCartWhatsAppOrder(name, phone, area, waWindow);
+                sendCartWhatsAppOrder(name, phone, area, waWindow, paymentMethod, upiRefIdVal);
             } else {
                 sendChatWhatsAppMessage(name, phone, area, waWindow);
             }
@@ -2408,16 +2426,41 @@ function openWhatsappDetailsModal(type) {
         if (detailsModalSubtitle) detailsModalSubtitle.textContent = dict.detailsModalSubtitleChat || "Please enter your details to start chatting with us on WhatsApp.";
     }
 
-    // Auto-fill from localStorage if customer info exists
-    const cachedInfo = localStorage.getItem('kshetriva_customer_info');
-    if (cachedInfo) {
-        try {
-            const info = JSON.parse(cachedInfo);
-            if (info.name) document.getElementById('custName').value = info.name;
-            if (info.phone) document.getElementById('custPhone').value = info.phone;
-            if (info.area) document.getElementById('custArea').value = info.area;
-        } catch (e) {
-            console.error("Error parsing cached customer info:", e);
+    // Auto-fill from customer profile if logged in, otherwise cache
+    if (currentCustomer) {
+        autoFillCustomerInfo();
+    } else {
+        const cachedInfo = localStorage.getItem('kshetriva_customer_info');
+        if (cachedInfo) {
+            try {
+                const info = JSON.parse(cachedInfo);
+                if (info.name) document.getElementById('custName').value = info.name;
+                if (info.phone) document.getElementById('custPhone').value = info.phone;
+                if (info.area) document.getElementById('custArea').value = info.area;
+            } catch (e) {
+                console.error("Error parsing cached customer info:", e);
+            }
+        }
+    }
+
+    // Toggle Payment Selector display depending on whether it is an order checkout or general enquiry chat
+    const paymentSelectorContainer = document.getElementById('paymentSelectorContainer');
+    const upiRefIdInput = document.getElementById('upiRefId');
+    if (paymentSelectorContainer) {
+        if (type === 'order') {
+            paymentSelectorContainer.style.display = 'block';
+            // Reset payment selection to COD on open
+            const codRadio = document.querySelector('input[name="paymentMethod"][value="cod"]');
+            if (codRadio) {
+                codRadio.checked = true;
+                togglePaymentSelection('cod');
+            }
+        } else {
+            paymentSelectorContainer.style.display = 'none';
+            if (upiRefIdInput) {
+                upiRefIdInput.required = false;
+                upiRefIdInput.value = '';
+            }
         }
     }
 
@@ -2619,10 +2662,25 @@ function renderAdminLeads() {
                 tr.style.backgroundColor = '#fafafa';
             }
 
+            let paymentDisplay = "";
+            if (lead.type === 'order') {
+                if (lead.paymentMethod === 'upi') {
+                    paymentDisplay = `<div style="font-size: 0.78rem; color: #0288d1; font-weight: bold; margin-top: 4px;"><i class="fa-solid fa-qrcode"></i> UPI: ${lead.upiRefId || 'N/A'}</div>`;
+                } else {
+                    paymentDisplay = `<div style="font-size: 0.78rem; color: #f57c00; font-weight: bold; margin-top: 4px;"><i class="fa-solid fa-money-bill-wave"></i> COD</div>`;
+                }
+            }
+            let userTypeDisplay = "";
+            if (lead.customerUid && lead.customerUid !== 'guest') {
+                userTypeDisplay = `<br><span style="display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-top: 3px;"><i class="fa-solid fa-circle-user"></i> Member</span>`;
+            } else if (lead.type === 'order') {
+                userTypeDisplay = `<br><span style="display: inline-block; background: #f5f5f5; color: #777; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-top: 3px;"><i class="fa-solid fa-user-secret"></i> Guest</span>`;
+            }
+
             tr.innerHTML = `
                 <td style="font-size: 0.85rem; font-weight: bold; color: var(--primary-color); white-space: nowrap;">${displayId}</td>
                 <td style="font-size: 0.88rem; font-weight: 500; color: #555;">${dateStr}</td>
-                <td style="font-weight: 600; color: var(--text-dark);">${lead.name}</td>
+                <td style="font-weight: 600; color: var(--text-dark);">${lead.name}${userTypeDisplay}</td>
                 <td>
                     <a href="tel:${lead.phone}" class="lead-phone-link"><i class="fa-solid fa-phone"></i> ${lead.phone}</a>
                     <a href="https://wa.me/91${lead.phone}" target="_blank" class="lead-wa-chat-btn" title="Chat on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
@@ -2631,6 +2689,7 @@ function renderAdminLeads() {
                 <td><span class="lead-badge ${badgeClass}">${badgeLabel}</span></td>
                 <td>
                     <div class="lead-cart-summary">${lead.cartSummary || '-'}</div>
+                    ${paymentDisplay}
                 </td>
                 <td>
                     ${actionsHtml}
@@ -2714,6 +2773,9 @@ function saveManualWindowState() {
         db.collection("metadata").doc("orderingWindow").set(manualWindowState)
             .then(() => {
                 console.log("Manual window state synced to Firestore.");
+                updateManualWindowUI();
+                updateOrderingWindowBanner();
+                updateCartUI();
             })
             .catch(err => {
                 console.warn("Error syncing manual window state to Firestore (falling back to LocalStorage):", err);
@@ -2761,6 +2823,11 @@ function updateManualWindowUI() {
 
 function toggleManualOverride(checked) {
     manualWindowState.overrideActive = checked;
+    
+    // Optimistic UI update
+    updateManualWindowUI();
+    updateOrderingWindowBanner();
+    updateCartUI();
 
     // Log action
     let actionStr = checked
@@ -2780,6 +2847,11 @@ function toggleForcedWindowState(checked) {
     }
 
     manualWindowState.overrideOpen = checked;
+    
+    // Optimistic UI update
+    updateManualWindowUI();
+    updateOrderingWindowBanner();
+    updateCartUI();
 
     // Log action
     let actionStr = checked
@@ -3443,20 +3515,374 @@ if (useFirebase && db) {
 }
 
 // Live Auth status state persistence listener
+// Live Auth status state persistence listener (handles both Admin and Customer logins)
 if (useFirebase && auth) {
     auth.onAuthStateChanged((user) => {
         if (user) {
-            console.log("Admin status check: Live Auth connected.");
-            if (window.location.hash === '#admin') {
-                openAdminDashboard();
+            if (user.email === 'admin@kshetrivafarms.com') {
+                console.log("Admin status check: Live Auth connected.");
+                currentCustomer = null;
+                updateUserNavbarState();
+                if (window.location.hash === '#admin') {
+                    openAdminDashboard();
+                }
+            } else {
+                console.log("Customer logged in:", user.email);
+                // Load customer profile from Firestore
+                db.collection("users").doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        currentCustomer = { uid: user.uid, email: user.email, ...doc.data() };
+                    } else {
+                        currentCustomer = { uid: user.uid, email: user.email, name: user.displayName || '', phone: '', locality: '' };
+                    }
+                    updateUserNavbarState();
+                    autoFillCustomerInfo();
+                    renderCustomerAuthModalContent();
+                }).catch(err => {
+                    console.error("Failed to load user profile:", err);
+                    currentCustomer = { uid: user.uid, email: user.email, name: user.displayName || '', phone: '', locality: '' };
+                    updateUserNavbarState();
+                    autoFillCustomerInfo();
+                    renderCustomerAuthModalContent();
+                });
+                if (window.location.hash === '#admin') {
+                    window.location.hash = ''; // Redirect away if client logged into admin hash
+                }
             }
         } else {
-            console.log("Admin status check: Guest status active.");
+            console.log("Live Auth status: Guest state active.");
+            currentCustomer = null;
+            updateUserNavbarState();
+            renderCustomerAuthModalContent();
             if (window.location.hash === '#admin') {
                 openAdminLogin();
             }
         }
     });
+}
+
+// ===== Customer Account Authentication Functions =====
+
+function openCustomerAuthModal() {
+    const modal = document.getElementById('customerAuthModal');
+    if (!modal) return;
+    modal.classList.add('open');
+    renderCustomerAuthModalContent();
+}
+
+function renderCustomerAuthModalContent() {
+    const loginForm = document.getElementById('customerLoginForm');
+    const registerForm = document.getElementById('customerRegisterForm');
+    const authTabs = document.querySelector('.auth-tabs');
+    const profileView = document.getElementById('customerProfileView');
+    
+    if (!loginForm || !registerForm || !authTabs || !profileView) return;
+    
+    if (currentCustomer) {
+        // Show Profile Info Card
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'none';
+        authTabs.style.display = 'none';
+        
+        profileView.style.display = 'block';
+        document.getElementById('profileName').textContent = currentCustomer.name || 'Customer';
+        document.getElementById('profileEmail').textContent = currentCustomer.email || '';
+        document.getElementById('profilePhone').textContent = currentCustomer.phone || '-';
+        document.getElementById('profileLocality').textContent = currentCustomer.locality || '-';
+        document.getElementById('profileAvatar').textContent = (currentCustomer.name || 'K').trim().charAt(0).toUpperCase();
+    } else {
+        // Show Login/Register tabs
+        profileView.style.display = 'none';
+        authTabs.style.display = 'flex';
+        switchAuthTab('login');
+    }
+}
+
+function closeCustomerAuthModal() {
+    const modal = document.getElementById('customerAuthModal');
+    if (modal) modal.classList.remove('open');
+}
+
+function switchAuthTab(tab) {
+    const loginTabBtn = document.getElementById('tabLoginBtn');
+    const registerTabBtn = document.getElementById('tabRegisterBtn');
+    const loginForm = document.getElementById('customerLoginForm');
+    const registerForm = document.getElementById('customerRegisterForm');
+    
+    if (!loginTabBtn || !registerTabBtn || !loginForm || !registerForm) return;
+    
+    document.getElementById('loginErrorMsg').style.display = 'none';
+    document.getElementById('registerErrorMsg').style.display = 'none';
+    
+    // Explicitly hide profile view when toggling tabs
+    const profileView = document.getElementById('customerProfileView');
+    if (profileView) profileView.style.display = 'none';
+    
+    if (tab === 'login') {
+        loginTabBtn.classList.add('active');
+        loginTabBtn.style.borderBottomColor = 'var(--primary-color)';
+        loginTabBtn.style.color = 'var(--primary-color)';
+        
+        registerTabBtn.classList.remove('active');
+        registerTabBtn.style.borderBottomColor = 'transparent';
+        registerTabBtn.style.color = '#777';
+        
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+    } else {
+        registerTabBtn.classList.add('active');
+        registerTabBtn.style.borderBottomColor = 'var(--primary-color)';
+        registerTabBtn.style.color = 'var(--primary-color)';
+        
+        loginTabBtn.classList.remove('active');
+        loginTabBtn.style.borderBottomColor = 'transparent';
+        loginTabBtn.style.color = '#777';
+        
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+    }
+}
+
+function handleCustomerLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const errorMsg = document.getElementById('loginErrorMsg');
+    if (!errorMsg) return;
+    
+    errorMsg.style.display = 'none';
+    
+    if (useFirebase && auth) {
+        auth.signInWithEmailAndPassword(email, pass)
+            .then(() => {
+                closeCustomerAuthModal();
+            })
+            .catch(err => {
+                errorMsg.textContent = "Error: " + err.message;
+                errorMsg.style.display = 'block';
+            });
+    } else {
+        // Local fallback authentication
+        const localUsersStr = localStorage.getItem('kshetriva_mock_customers') || '[]';
+        try {
+            const users = JSON.parse(localUsersStr);
+            const foundUser = users.find(u => u.email === email && u.password === pass);
+            if (foundUser) {
+                currentCustomer = foundUser;
+                sessionStorage.setItem('kshetriva_customer_session', JSON.stringify(foundUser));
+                updateUserNavbarState();
+                autoFillCustomerInfo();
+                closeCustomerAuthModal();
+            } else {
+                errorMsg.textContent = "Invalid email or password (or create a new account in Register tab).";
+                errorMsg.style.display = 'block';
+            }
+        } catch (err) {
+            console.error(err);
+            errorMsg.textContent = "Failed to login locally.";
+            errorMsg.style.display = 'block';
+        }
+    }
+}
+
+function handleCustomerRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const pass = document.getElementById('registerPassword').value;
+    const phone = document.getElementById('registerPhone').value.trim();
+    const locality = document.getElementById('registerLocality').value.trim();
+    
+    const errorMsg = document.getElementById('registerErrorMsg');
+    if (!errorMsg) return;
+    
+    errorMsg.style.display = 'none';
+    const profileData = { name, email, phone, locality };
+    
+    if (useFirebase && auth) {
+        auth.createUserWithEmailAndPassword(email, pass)
+            .then((cred) => {
+                db.collection("users").doc(cred.user.uid).set(profileData)
+                    .then(() => {
+                        closeCustomerAuthModal();
+                    })
+                    .catch((err) => {
+                        console.error("Firestore user profile save failed:", err);
+                        closeCustomerAuthModal();
+                    });
+            })
+            .catch(err => {
+                errorMsg.textContent = "Error: " + err.message;
+                errorMsg.style.display = 'block';
+            });
+    } else {
+        // Local fallback registration
+        let users = [];
+        const localUsersStr = localStorage.getItem('kshetriva_mock_customers');
+        if (localUsersStr) {
+            try {
+                users = JSON.parse(localUsersStr);
+            } catch (e) {}
+        }
+        
+        if (users.some(u => u.email === email)) {
+            errorMsg.textContent = "An account with this email already exists.";
+            errorMsg.style.display = 'block';
+            return;
+        }
+        
+        const newUser = { uid: 'mock_' + Date.now(), email, password: pass, name, phone, locality };
+        users.push(newUser);
+        localStorage.setItem('kshetriva_mock_customers', JSON.stringify(users));
+        
+        currentCustomer = newUser;
+        sessionStorage.setItem('kshetriva_customer_session', JSON.stringify(newUser));
+        updateUserNavbarState();
+        autoFillCustomerInfo();
+        closeCustomerAuthModal();
+    }
+}
+
+function handleCustomerLogout() {
+    if (useFirebase && auth) {
+        auth.signOut().then(() => {
+            currentCustomer = null;
+            updateUserNavbarState();
+            closeCustomerAuthModal();
+        }).catch(err => console.error("Signout error:", err));
+    } else {
+        currentCustomer = null;
+        sessionStorage.removeItem('kshetriva_customer_session');
+        updateUserNavbarState();
+        closeCustomerAuthModal();
+    }
+}
+
+function updateUserNavbarState() {
+    const btn = document.getElementById('accountBtn');
+    if (!btn) return;
+    
+    if (currentCustomer) {
+        const initial = (currentCustomer.name || 'K').trim().charAt(0).toUpperCase();
+        btn.innerHTML = `<div class="user-avatar" style="background: var(--primary-color); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1);">${initial}</div>`;
+        btn.title = `My Account (${currentCustomer.name})`;
+    } else {
+        btn.innerHTML = `<i class="fa-solid fa-user"></i>`;
+        btn.title = "My Account";
+    }
+}
+
+function autoFillCustomerInfo() {
+    if (currentCustomer) {
+        const nameInput = document.getElementById('custName');
+        const phoneInput = document.getElementById('custPhone');
+        const areaInput = document.getElementById('custArea');
+        
+        if (nameInput) nameInput.value = currentCustomer.name || '';
+        if (phoneInput) phoneInput.value = currentCustomer.phone || '';
+        if (areaInput) areaInput.value = currentCustomer.locality || '';
+    }
+}
+
+function initCustomerAuth() {
+    if (!useFirebase) {
+        const session = sessionStorage.getItem('kshetriva_customer_session');
+        if (session) {
+            try {
+                currentCustomer = JSON.parse(session);
+                updateUserNavbarState();
+                autoFillCustomerInfo();
+            } catch (e) {
+                console.error("Failed to restore customer mock session:", e);
+            }
+        }
+    }
+}
+
+// ===== Payment Selector & UPI Processing =====
+
+function togglePaymentSelection(method) {
+    const codLabel = document.getElementById('lblPaymentCod');
+    const upiLabel = document.getElementById('lblPaymentUpi');
+    const upiPanel = document.getElementById('upiPaymentPanel');
+    const upiRefIdInput = document.getElementById('upiRefId');
+    
+    if (!codLabel || !upiLabel || !upiPanel || !upiRefIdInput) return;
+    
+    if (method === 'cod') {
+        codLabel.style.borderColor = 'var(--primary-color)';
+        codLabel.style.background = '#e8f5e9';
+        codLabel.style.color = 'var(--primary-color)';
+        
+        upiLabel.style.borderColor = '#e0e0e0';
+        upiLabel.style.background = '#fff';
+        upiLabel.style.color = '#555';
+        
+        upiPanel.style.display = 'none';
+        upiRefIdInput.required = false;
+        upiRefIdInput.value = '';
+    } else {
+        upiLabel.style.borderColor = 'var(--primary-color)';
+        upiLabel.style.background = '#e8f5e9';
+        upiLabel.style.color = 'var(--primary-color)';
+        
+        codLabel.style.borderColor = '#e0e0e0';
+        codLabel.style.background = '#fff';
+        codLabel.style.color = '#555';
+        
+        upiPanel.style.display = 'block';
+        upiRefIdInput.required = true;
+        
+        generateUpiPaymentDetails();
+    }
+}
+
+function generateUpiPaymentDetails() {
+    const upiQrContainer = document.getElementById('upiQrContainer');
+    const upiMobileLinkContainer = document.getElementById('upiMobileLinkContainer');
+    const upiMobileLink = document.getElementById('upiMobileLink');
+    if (!upiQrContainer) return;
+    
+    const cartKeys = Object.keys(cart);
+    let subtotal = 0;
+    cartKeys.forEach((idStr) => {
+        const id = parseInt(idStr);
+        const rawProduct = products.find(p => p.id === id);
+        if (rawProduct) {
+            const product = getTranslatedProduct(rawProduct);
+            const cartEntry = cart[id];
+            const qty = cartEntry.qty || 1;
+            const price = cartEntry.optionPrice || parseInt((product.price || '0').replace(/[^\d]/g, ''));
+            subtotal += price * qty;
+        }
+    });
+    
+    const uniqueItems = cartKeys.length;
+    const currentTier = detectBasketTier(uniqueItems);
+    let deliveryCharge = appliedCoupon === 'Delivery@30' ? 30 : 49;
+    let finalTotal = subtotal;
+    if (currentTier) {
+        const discountAmt = Math.round(subtotal * currentTier.discount * 100) / 100;
+        finalTotal = Math.round((subtotal - discountAmt) * 100) / 100;
+    }
+    finalTotal += deliveryCharge;
+    
+    const merchantUpi = "8374276995@ybl";
+    const merchantName = "Kshetriva Farms";
+    const txnNote = encodeURIComponent(`Order payment for Kshetriva Farms`);
+    
+    const upiUrl = `upi://pay?pa=${merchantUpi}&pn=${encodeURIComponent(merchantName)}&am=${finalTotal}&cu=INR&tn=${txnNote}`;
+    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}`;
+    
+    upiQrContainer.innerHTML = `<img src="${qrImgUrl}" alt="UPI QR Code" style="width: 150px; height: 150px; border-radius: 8px; border: 1px solid #ddd; padding: 5px; background: white;">`;
+    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    if (isMobile && upiMobileLinkContainer && upiMobileLink) {
+        upiMobileLinkContainer.style.display = 'block';
+        upiMobileLink.href = upiUrl;
+    } else if (upiMobileLinkContainer) {
+        upiMobileLinkContainer.style.display = 'none';
+    }
 }
 
 
@@ -5028,12 +5454,14 @@ function closeWeekDetails() {
 
 loadCart();
 loadManualWindowState();
+updateManualWindowUI();
 applyLanguage();
 initCouponLogic();
 updateCartUI();
 renderProducts();
 checkHashRoute();
 updateOrderingWindowBanner();
+initCustomerAuth();
 
 // Refresh ordering window countdown every 60 seconds
 setInterval(() => {

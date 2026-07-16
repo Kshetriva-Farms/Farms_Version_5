@@ -48,14 +48,14 @@
 
     <!-- Google Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&family=Outfit:wght@400;700;800&display=swap"
         rel="stylesheet">
 
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="styles.css?v=3.0">
+    <link rel="stylesheet" href="styles.css?v=5.0">
 
     <!-- Favicon and Logo configuration standard links -->
     <link rel="icon" type="image/png" href="images/favicon.png">
@@ -132,6 +132,9 @@
                     <span class="lang-option" id="langOptTe">TE</span>
                     <div class="lang-slider"></div>
                 </div>
+                <button class="account-btn" id="accountBtn" onclick="openCustomerAuthModal()" title="My Account" aria-label="My Account" style="background: none; border: none; font-size: 1.25rem; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: var(--transition); position: relative; margin-right: 5px;">
+                    <i class="fa-solid fa-user"></i>
+                </button>
                 <button class="cart-btn" id="cartBtn" title="View Cart" aria-label="View Shopping Basket">
                     <i class="fa-solid fa-shopping-basket"></i>
                     <span class="cart-badge" id="cartBadge">0</span>
@@ -243,12 +246,36 @@
             </div>
 
             <div class="category-filter">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="leafy">Leafy Vegetables</button>
-                <button class="filter-btn" data-filter="root">Root Vegetables</button>
-                <!-- <button class="filter-btn" data-filter="seasonal">Seasonal</button> -->
-                <button class="filter-btn" data-filter="vegetables">Vegetables</button>
-                <button class="filter-btn" data-filter="fruits">Fruits</button>
+                <button class="filter-btn circular active" data-filter="all" aria-label="Show All Products">
+                    <div class="circle-img-wrap">
+                        <img src="images/farm_field.webp" alt="All Crops" loading="lazy">
+                    </div>
+                    <span class="circle-label">All</span>
+                </button>
+                <button class="filter-btn circular" data-filter="leafy" aria-label="Show Leafy Greens">
+                    <div class="circle-img-wrap" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
+                        <img src="images/spinach.webp" alt="Leafy Greens" loading="lazy">
+                    </div>
+                    <span class="circle-label">Leafy Greens</span>
+                </button>
+                <button class="filter-btn circular" data-filter="root" aria-label="Show Root Vegetables">
+                    <div class="circle-img-wrap" style="background: linear-gradient(135deg, #efe3d6 0%, #b08968 100%);">
+                        <img src="images/carrots.webp" alt="Root Veggies" loading="lazy">
+                    </div>
+                    <span class="circle-label">Root Veggies</span>
+                </button>
+                <button class="filter-btn circular" data-filter="vegetables" aria-label="Show Vegetables">
+                    <div class="circle-img-wrap" style="background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 100%);">
+                        <img src="images/tomatoes.webp" alt="Vegetables" loading="lazy">
+                    </div>
+                    <span class="circle-label">Vegetables</span>
+                </button>
+                <button class="filter-btn circular" data-filter="fruits" aria-label="Show Fruits">
+                    <div class="circle-img-wrap" style="background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%);">
+                        <img src="images/mangoes.webp" alt="Fruits" loading="lazy">
+                    </div>
+                    <span class="circle-label">Fruits</span>
+                </button>
             </div>
 
             <div class="product-grid" id="productGrid">
@@ -643,6 +670,50 @@
                     <input type="text" id="custArea" required placeholder="e.g. Maryala, Telangana"
                         style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid #e0e0e0; font-family: inherit; font-size: 0.95rem; transition: var(--transition);">
                 </div>
+
+                <!-- Payment Selector Wrapper (only visible during cart order checkout) -->
+                <div id="paymentSelectorContainer">
+                    <!-- Payment Method Selector -->
+                    <div class="form-group" style="text-align: left; margin-bottom: 20px;">
+                        <label id="lblPaymentMethod" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.88rem; color: var(--text-dark);">Payment Method / చెల్లింపు విధానం *</label>
+                        <div style="display: flex; gap: 15px;">
+                            <label style="flex: 1; border: 1.5px solid var(--primary-color); padding: 12px 10px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; background: #e8f5e9; transition: var(--transition); text-align: center; color: var(--primary-color);" id="lblPaymentCod">
+                                <input type="radio" name="paymentMethod" value="cod" checked style="display: none;" onchange="togglePaymentSelection('cod')">
+                                <i class="fa-solid fa-money-bill-wave"></i> Cash (COD)
+                            </label>
+                            <label style="flex: 1; border: 1.5px solid #e0e0e0; padding: 12px 10px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; background: #fff; transition: var(--transition); text-align: center; color: #555;" id="lblPaymentUpi">
+                                <input type="radio" name="paymentMethod" value="upi" style="display: none;" onchange="togglePaymentSelection('upi')">
+                                <i class="fa-solid fa-qrcode"></i> Pay Online (UPI)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- UPI Online Payment Sub-panel -->
+                    <div id="upiPaymentPanel" style="display: none; text-align: left; margin-bottom: 20px; background: #fafafa; border: 1.5px dashed #2e7d32; border-radius: 12px; padding: 15px;">
+                        <div style="text-align: center; margin-bottom: 12px;">
+                            <h4 style="font-size: 0.95rem; color: var(--primary-color); margin-bottom: 5px;">Scan QR to Pay Instantly</h4>
+                            <p style="font-size: 0.8rem; color: #666;">Scan using GPay, PhonePe, Paytm, or BHIM</p>
+                        </div>
+                        
+                        <!-- Desktop QR Code -->
+                        <div id="upiQrContainer" style="display: flex; justify-content: center; margin-bottom: 12px;">
+                            <div style="width: 150px; height: 150px; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #888; border-radius: 8px;">Generating QR...</div>
+                        </div>
+                        
+                        <!-- Mobile Direct App Link Button -->
+                        <div id="upiMobileLinkContainer" style="display: none; margin-bottom: 12px;">
+                            <a id="upiMobileLink" href="#" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: #0070F3; color: white; border-radius: 10px; padding: 11px; font-size: 0.9rem; font-weight: 700; text-transform: uppercase;">
+                                <i class="fa-solid fa-mobile-screen-button"></i> Open UPI App to Pay
+                            </a>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label for="upiRefId" id="lblUpiRefId" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.82rem; color: #555;">UPI Ref / Transaction ID (12 digits) *</label>
+                            <input type="text" id="upiRefId" placeholder="e.g. 345678901234" minlength="12" maxlength="12" pattern="[0-9]{12}" title="Please enter the 12-digit transaction ID" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid #ddd; font-family: inherit; font-size: 0.9rem;">
+                        </div>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-whatsapp" id="btnDetailsSubmit"
                     style="width: 100%; border-radius: 10px; padding: 13px; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Outfit', sans-serif;">
                     <i class="fa-brands fa-whatsapp"></i> Proceed to WhatsApp
@@ -1215,37 +1286,120 @@
         </div>
     </div>
 
+    <!-- Customer Authentication Modal (Login / Register) -->
+    <div class="product-form-modal" id="customerAuthModal" style="z-index: 3200;">
+        <div class="product-form-content" style="max-width: 480px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-height: 95vh; overflow-y: auto;">
+            <button class="close-product-form" onclick="closeCustomerAuthModal()">&times;</button>
+            
+            <div class="auth-tabs" style="display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px;">
+                <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')" style="flex: 1; padding: 12px; background: none; border: none; font-size: 1.05rem; font-weight: 700; color: var(--primary-color); cursor: pointer; border-bottom: 3px solid var(--primary-color); transition: var(--transition);">Sign In</button>
+                <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')" style="flex: 1; padding: 12px; background: none; border: none; font-size: 1.05rem; font-weight: 700; color: #777; cursor: pointer; border-bottom: 3px solid transparent; transition: var(--transition);">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="customerLoginForm" onsubmit="handleCustomerLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Email Address</label>
+                    <input type="email" id="loginEmail" required placeholder="e.g. name@example.com" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px;">
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="Enter password" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px;">
+                </div>
+                <div id="loginErrorMsg" style="color: #d32f2f; font-size: 0.88rem; font-weight: 600; margin-top: 12px; display: none;"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 25px; border-radius: 20px; padding: 12px 0;">Sign In</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="customerRegisterForm" onsubmit="handleCustomerRegister(event)" style="display: none;">
+                <div class="form-group">
+                    <label for="registerName">Full Name</label>
+                    <input type="text" id="registerName" required placeholder="e.g. Sandeep Kumar" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px;">
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="registerEmail">Email Address</label>
+                    <input type="email" id="registerEmail" required placeholder="e.g. sandeep@example.com" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px;">
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="registerPassword">Password (min 6 characters)</label>
+                    <input type="password" id="registerPassword" required minlength="6" placeholder="Create password" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px;">
+                </div>
+                <div class="form-row" style="margin-top: 15px; display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="registerPhone">WhatsApp Number</label>
+                        <input type="tel" id="registerPhone" required placeholder="e.g. 9876543210" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px;">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="registerLocality">Locality / Area</label>
+                        <input type="text" id="registerLocality" required placeholder="e.g. Secunderabad" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px;">
+                    </div>
+                </div>
+                <div id="registerErrorMsg" style="color: #d32f2f; font-size: 0.88rem; font-weight: 600; margin-top: 12px; display: none;"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 25px; border-radius: 20px; padding: 12px 0;">Create Account</button>
+            </form>
+
+            <!-- Profile View -->
+            <div id="customerProfileView" style="display: none; text-align: left;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div id="profileAvatar" style="width: 70px; height: 70px; border-radius: 50%; background-color: var(--primary-color); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; margin-bottom: 10px;">K</div>
+                    <h3 id="profileName" style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.25rem;">Customer Name</h3>
+                    <p id="profileEmail" style="color: #666; font-size: 0.9rem; margin-top: 2px;">customer@example.com</p>
+                </div>
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 10px; font-size: 0.95rem;">
+                    <div>
+                        <strong style="color: #555;">WhatsApp Number:</strong>
+                        <span id="profilePhone" style="margin-left: 5px; color: #111;">-</span>
+                    </div>
+                    <div>
+                        <strong style="color: #555;">Locality / Area:</strong>
+                        <span id="profileLocality" style="margin-left: 5px; color: #111;">-</span>
+                    </div>
+                </div>
+                <button onclick="handleCustomerLogout()" class="btn btn-secondary" style="width: 100%; margin-top: 25px; border-radius: 20px; border: 2.5px solid #d32f2f; color: #d32f2f; background: transparent; padding: 10px 0;">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK compat libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-    <!-- Custom Script -->
-    <script src="script.js?v=4.0"></script>
+    <script src="script.js?v=5.0"></script>
 
     <!-- Register Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => {
-                        console.log('🌾 Service Worker registered successfully:', reg.scope);
-
-                        // Force check for updates to service worker on load
-                        reg.update();
-                    })
-                    .catch((err) => console.warn('🌾 Service Worker registration failed:', err));
-
-                // Listen for service worker updates taking control of client and auto-reload the page
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (!refreshing) {
-                        refreshing = true;
-                        console.log('🌾 Service Worker updated! Reloading page to transition to Version 3.');
-                        window.location.reload();
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (isLocal) {
+                // Unregister any active service workers on localhost to prevent developer caching issues
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    for (let reg of regs) {
+                        reg.unregister().then(unregistered => {
+                            if (unregistered) console.log("🌾 Localhost: Unregistered active service worker successfully.");
+                        });
                     }
                 });
-            });
+            } else {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then((reg) => {
+                            console.log('🌾 Service Worker registered successfully:', reg.scope);
+                            reg.update();
+                        })
+                        .catch((err) => console.warn('🌾 Service Worker registration failed:', err));
+
+                    // Listen for service worker updates taking control of client and auto-reload the page
+                    let refreshing = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        if (!refreshing) {
+                            refreshing = true;
+                            console.log('🌾 Service Worker updated! Reloading page to transition to Version 3.');
+                            window.location.reload();
+                        }
+                    });
+                });
+            }
         }
     </script>
 </body>
