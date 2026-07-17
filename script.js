@@ -4002,14 +4002,16 @@ function renderFounderInsights() {
         // Update Stats UI
         document.getElementById('founderRevenueVal').textContent = `₹${grossSales}`;
         document.getElementById('founderOrdersVal').textContent = totalOrders;
+        // Calculate leaderboard for present week only
+        const currentWeekStr = getWeekRangeString(new Date().toISOString());
+        const presentWeekOrders = ordersOnly.filter(o => getWeekRangeString(o.timestamp) === currentWeekStr);
+        const presentWeekCount = presentWeekOrders.length;
+
         const weekOrdersEl = document.getElementById('founderWeekOrdersVal');
         if (weekOrdersEl) {
             weekOrdersEl.textContent = presentWeekCount;
         }
 
-        // Calculate leaderboard for present week only
-        const currentWeekStr = getWeekRangeString(new Date().toISOString());
-        const presentWeekOrders = ordersOnly.filter(o => getWeekRangeString(o.timestamp) === currentWeekStr);
         renderLeaderboard(presentWeekOrders);
 
         // Render Founder Logistics Console list
@@ -4030,6 +4032,7 @@ function renderFounderInsights() {
 
         ordersOnly.forEach(o => {
             const tr = document.createElement('tr');
+            const displayId = getDisplayLeadId(o, leads);
 
             const dateStr = new Date(o.timestamp).toLocaleString('en-IN', {
                 day: 'numeric',
