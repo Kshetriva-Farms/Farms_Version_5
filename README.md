@@ -505,3 +505,10 @@ For queries, orders, or partner programs:
 - **Optimistic UI Controls**: Added optimistic UI state rendering directly inside settings toggle event handlers to bypass database sync latencies.
 - **Local Service Worker Bypass**: Configured service worker updates to bypass and unregister when running on `localhost` or `127.0.0.1` to prevent development file caching conflicts.
 
+### 🗓️ July 17, 2026
+
+#### 1. 📊 Founder Insights Dashboard Fixes & Enhancements
+- **Reference Crash Resolution:** Fixed critical JavaScript reference errors (`presentWeekCount` and `displayId` undefined) that were crashing the `renderFounderInsights()` pipeline and leaving the Founder Insights dashboard tab blank.
+- **Temporal Metrics Integration:** Integrated a unique week count calculator and average weekly sales calculation. The dashboard now shows the total weeks and average weekly sales dynamically inside the stats cards (e.g., `32 (4 Weeks)` for total orders and `₹8683 (Avg: ₹2171/wk)` for platform sales).
+
+
