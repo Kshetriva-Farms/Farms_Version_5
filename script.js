@@ -3575,25 +3575,46 @@ function renderCustomerAuthModalContent() {
     const registerForm = document.getElementById('customerRegisterForm');
     const authTabs = document.querySelector('.auth-tabs');
     const profileView = document.getElementById('customerProfileView');
+    const googleWrapper = document.getElementById('googleAuthWrapper');
+    const googleProfileForm = document.getElementById('googleProfileCompletionForm');
     
     if (!loginForm || !registerForm || !authTabs || !profileView) return;
     
     if (currentCustomer) {
-        // Show Profile Info Card
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'none';
-        authTabs.style.display = 'none';
-        
-        profileView.style.display = 'block';
-        document.getElementById('profileName').textContent = currentCustomer.name || 'Customer';
-        document.getElementById('profileEmail').textContent = currentCustomer.email || '';
-        document.getElementById('profilePhone').textContent = currentCustomer.phone || '-';
-        document.getElementById('profileLocality').textContent = currentCustomer.locality || '-';
-        document.getElementById('profileAvatar').textContent = (currentCustomer.name || 'K').trim().charAt(0).toUpperCase();
+        if (!currentCustomer.phone || !currentCustomer.locality) {
+            // Logged in but needs profile completion
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'none';
+            authTabs.style.display = 'none';
+            if (googleWrapper) googleWrapper.style.display = 'none';
+            profileView.style.display = 'none';
+            if (googleProfileForm) googleProfileForm.style.display = 'block';
+            
+            // Clear any error messages
+            const errEl = document.getElementById('googleProfileErrorMsg');
+            if (errEl) errEl.style.display = 'none';
+        } else {
+            // Profile is fully complete
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'none';
+            authTabs.style.display = 'none';
+            if (googleWrapper) googleWrapper.style.display = 'none';
+            if (googleProfileForm) googleProfileForm.style.display = 'none';
+            
+            profileView.style.display = 'block';
+            document.getElementById('profileName').textContent = currentCustomer.name || 'Customer';
+            document.getElementById('profileEmail').textContent = currentCustomer.email || '';
+            document.getElementById('profilePhone').textContent = currentCustomer.phone || '-';
+            document.getElementById('profileLocality').textContent = currentCustomer.locality || '-';
+            document.getElementById('profileAvatar').textContent = (currentCustomer.name || 'K').trim().charAt(0).toUpperCase();
+        }
     } else {
-        // Show Login/Register tabs
+        // Show Login/Register tabs & Google login button
         profileView.style.display = 'none';
+        if (googleProfileForm) googleProfileForm.style.display = 'none';
+        
         authTabs.style.display = 'flex';
+        if (googleWrapper) googleWrapper.style.display = 'block';
         switchAuthTab('login');
     }
 }
@@ -3618,6 +3639,14 @@ function switchAuthTab(tab) {
     const profileView = document.getElementById('customerProfileView');
     if (profileView) profileView.style.display = 'none';
     
+    // Explicitly hide completion form when toggling tabs
+    const googleProfileForm = document.getElementById('googleProfileCompletionForm');
+    if (googleProfileForm) googleProfileForm.style.display = 'none';
+    
+    // Show Google Auth button wrapper when tabs are showing
+    const googleWrapper = document.getElementById('googleAuthWrapper');
+    if (googleWrapper) googleWrapper.style.display = 'block';
+    
     if (tab === 'login') {
         loginTabBtn.classList.add('active');
         loginTabBtn.style.borderBottomColor = 'var(--primary-color)';
@@ -3640,6 +3669,97 @@ function switchAuthTab(tab) {
         
         loginForm.style.display = 'none';
         registerForm.style.display = 'block';
+    }
+}
+
+function handleGoogleSignIn() {
+    if (useFirebase && auth) {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider)
+            .then((result) => {
+                console.log("Google Sign-In successful: ", result.user.email);
+            })
+            .catch((error) => {
+                console.error("Google Sign-In failed: ", error);
+                alert("Google Sign-In failed: " + error.message);
+            });
+    } else {
+        // Local mock Google Sign-In fallback
+        console.log("Firebase is offline. Launching simulated Google Login.");
+        const mockUser = {
+            uid: "google_mock_" + Date.now(),
+            email: "google.tester@example.com",
+            name: "Google Tester",
+            phone: "", // initially empty to trigger the profile completion form
+            locality: ""
+        };
+        currentCustomer = mockUser;
+        sessionStorage.setItem('kshetriva_customer_session', JSON.stringify(mockUser));
+        updateUserNavbarState();
+        autoFillCustomerInfo();
+        renderCustomerAuthModalContent();
+    }
+}
+
+function handleGoogleProfileCompletion(e) {
+    e.preventDefault();
+    const phone = document.getElementById('googlePhone').value.trim();
+    const locality = document.getElementById('googleLocality').value.trim();
+    const errorMsg = document.getElementById('googleProfileErrorMsg');
+    
+    if (!phone || !locality) {
+        if (errorMsg) {
+            errorMsg.textContent = "Please fill in all details.";
+            errorMsg.style.display = "block";
+        }
+        return;
+    }
+    
+    if (currentCustomer) {
+        currentCustomer.phone = phone;
+        currentCustomer.locality = locality;
+        
+        if (useFirebase && db && auth && auth.currentUser) {
+            const profileData = {
+                name: currentCustomer.name || auth.currentUser.displayName || "Google User",
+                email: currentCustomer.email || auth.currentUser.email,
+                phone: phone,
+                locality: locality
+            };
+            db.collection("users").doc(auth.currentUser.uid).set(profileData, { merge: true })
+                .then(() => {
+                    console.log("Google profile updated in Firestore.");
+                    autoFillCustomerInfo();
+                    renderCustomerAuthModalContent();
+                    closeCustomerAuthModal();
+                })
+                .catch((err) => {
+                    console.error("Firestore user profile save failed:", err);
+                    if (errorMsg) {
+                        errorMsg.textContent = "Error: " + err.message;
+                        errorMsg.style.display = 'block';
+                    }
+                });
+        } else {
+            // Mock profile completion
+            sessionStorage.setItem('kshetriva_customer_session', JSON.stringify(currentCustomer));
+            
+            // Save mock user to mock database
+            let users = [];
+            const localUsersStr = localStorage.getItem('kshetriva_mock_customers');
+            if (localUsersStr) {
+                try {
+                    users = JSON.parse(localUsersStr);
+                } catch (e) {}
+            }
+            users = users.filter(u => u.email !== currentCustomer.email); // avoid duplicate mock accounts
+            users.push({ ...currentCustomer });
+            localStorage.setItem('kshetriva_mock_customers', JSON.stringify(users));
+            
+            autoFillCustomerInfo();
+            renderCustomerAuthModalContent();
+            closeCustomerAuthModal();
+        }
     }
 }
 
