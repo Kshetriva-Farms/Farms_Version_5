@@ -511,4 +511,11 @@ For queries, orders, or partner programs:
 - **Reference Crash Resolution:** Fixed critical JavaScript reference errors (`presentWeekCount` and `displayId` undefined) that were crashing the `renderFounderInsights()` pipeline and leaving the Founder Insights dashboard tab blank.
 - **Temporal Metrics Integration:** Integrated a unique week count calculator and average weekly sales calculation. The dashboard now shows the total weeks and average weekly sales dynamically inside the stats cards (e.g., `32 (4 Weeks)` for total orders and `₹8683 (Avg: ₹2171/wk)` for platform sales).
 
+### 🗓️ July 18, 2026
+
+#### 1. 🔐 Google Sign-In & Profile Completion Form (Version 5.1)
+- **Continue with Google**: Integrated a secure "Continue with Google" button inside the customer authentication modal using Firebase Auth compat APIs (`firebase.auth.GoogleAuthProvider`).
+- **Profile Completion Workflow**: Configured a post-login workflow for new Google sign-ups to prompt for delivery-critical details (WhatsApp Number and Locality/Area) which are saved back to Firestore to ensure checkout auto-filling remains accurate.
+- **Offline Sandbox Fallback**: Created a simulated local Google login session wrapper for offline testing when the Firebase configuration is unconfigured or unavailable.
+
 
